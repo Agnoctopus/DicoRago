@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  ########################
+  #   BACKEND (FastAPI)  #
+  ########################
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "8000:8000"
+
+  ########################
+  #   FRONTEND (Vue.js)  #
+  ########################
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
