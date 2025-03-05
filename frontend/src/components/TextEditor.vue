@@ -2,16 +2,37 @@
 import { ref, onMounted, watch, nextTick, computed } from 'vue'
 import { analyzeText } from '@/api'
 import type { Unit, Analysis } from '@/types'
-import { mdiPalette, mdiFilter } from '@mdi/js'
+import { mdiPalette, mdiFilter, mdiCog } from '@mdi/js'
 import { useVocabStore } from '@/stores/vocabulary'
+import TextEditorSettings from '@/components/TextEditorSettings.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 // Reference to the editable area and state for analyzed units.
 const editor = ref<HTMLElement | null>(null)
 const units = ref<Unit[]>([])
 
+// Use the settings store for the "only unknown" toggle.
+const settingsStore = useSettingsStore()
+
 // Toggle states for coloring and vocabulary filtering.
-const coloringEnabled = ref(false)
-const vocabularyEnabled = ref(false)
+const coloringEnabled = computed({
+  get: () => settingsStore.coloringEnabled,
+  set: (value: boolean) => settingsStore.setColoringEnabled(value),
+})
+const vocabularyEnabled = computed({
+  get: () => settingsStore.vocabularyEnabled,
+  set: (value: boolean) => settingsStore.setVocabularyEnabled(value),
+})
+const onlyUnknownColoring = computed({
+  get: () => settingsStore.onlyUnknownColoring,
+  set: (value: boolean) => settingsStore.setOnlyUnknownColoring(value),
+})
+
+// Controls the display of the settings panel.
+const showSettings = ref(false)
+const handleSettingsClose = async () => {
+  showSettings.value = false
+}
 
 const isEditable = ref(true)
 const isMobile = /Mobi|Android/i.test(navigator.userAgent)
@@ -23,15 +44,9 @@ const vocabStore = useVocabStore()
 const emit = defineEmits<{
   (e: 'word-selected', unit: Unit | null): void
   (e: 'analysis-complete', analysis: Analysis): void
-  (e: 'vocabulary-toggle', filter: boolean): void
 }>()
 
-// Emit vocabulary toggle changes.
-watch(vocabularyEnabled, (newVal) => {
-  emit('vocabulary-toggle', newVal)
-})
-
-// Text length state and limit
+// Text length state and limit.
 const textLength = ref(0)
 const maxLength = 1000
 const isTextTooLong = computed(() => textLength.value > maxLength)
@@ -45,11 +60,12 @@ function updateTextLength() {
 
 /**
  * Annotates the original text by wrapping each unit word with a <span>.
- * Applies additional classes if coloring is enabled:
+ * Applies classes based on the unit's status:
  * - 'known' if the word is learned.
  * - 'unknown' if not learned.
  * - 'undefined' if no vocabulary is defined.
- * Replaces newlines with <br>.
+ * In "only unknown" mode, only unknown words get colored.
+ * Newlines are replaced with <br>.
  */
 function annotateText(original: string, units: Unit[]): string {
   let result = ''
@@ -63,8 +79,15 @@ function annotateText(original: string, units: Unit[]): string {
     let extraClass = ''
     if (coloringEnabled.value) {
       if (unit.vocabulary) {
-        extraClass = vocabStore.isLearned(unit.vocabulary) ? ' known' : ' unknown'
-      } else {
+        const known = vocabStore.isLearned(unit.vocabulary)
+        if (onlyUnknownColoring.value) {
+          if (!known) {
+            extraClass = ' unknown'
+          }
+        } else {
+          extraClass = known ? ' known' : ' unknown'
+        }
+      } else if (!onlyUnknownColoring.value) {
         extraClass = ' undefined'
       }
     }
@@ -95,12 +118,15 @@ function updateColorize() {
       return
     }
     if (unit && unit.vocabulary) {
-      if (vocabStore.isLearned(unit.vocabulary)) {
-        wordElement.classList.add('known')
+      const known = vocabStore.isLearned(unit.vocabulary)
+      if (known) {
+        if (!onlyUnknownColoring.value) {
+          wordElement.classList.add('known')
+        }
       } else {
         wordElement.classList.add('unknown')
       }
-    } else {
+    } else if (!onlyUnknownColoring.value) {
       wordElement.classList.add('undefined')
     }
   })
@@ -118,26 +144,21 @@ const renderAnnotatedText = () => {
 
 /**
  * Analyzes the current text via the API and emits the analysis result.
- * If the text exceeds the maximum allowed length, it will not be analyzed.
+ * Will not analyze if the text exceeds the maximum allowed length.
  */
 const analyzeCurrentText = async () => {
   if (!editor.value || !editor.value.innerText) {
     return
   }
-
-  // Check text length
   updateTextLength()
   if (isTextTooLong.value) {
     return
   }
-
   try {
     const analysis: Analysis = await analyzeText(editor.value.innerText)
     units.value = analysis.units
     renderAnnotatedText()
     emit('analysis-complete', analysis)
-
-    // On mobile, disable editing after analysis.
     if (isMobile) {
       isEditable.value = false
     }
@@ -152,12 +173,10 @@ const analyzeCurrentText = async () => {
 const handleClick = (event: MouseEvent) => {
   const target = event.target as HTMLElement
   if (target && target.classList.contains('word')) {
-    // Toggle the current selected word.
     const currentlySelected = editor.value?.querySelector('.word.selected')
     if (currentlySelected && currentlySelected !== target) {
       currentlySelected.classList.remove('selected')
     }
-
     if (target.classList.contains('selected')) {
       target.classList.remove('selected')
       emit('word-selected', null)
@@ -192,7 +211,7 @@ function enableEditing() {
   })
 }
 
-// Set up event listeners on mount.
+// Set up event listeners when the component is mounted.
 onMounted(() => {
   if (editor.value) {
     editor.value.addEventListener('click', handleClick)
@@ -201,12 +220,9 @@ onMounted(() => {
   }
 })
 
-// Update coloring when coloring is toggled.
-watch(coloringEnabled, () => {
-  updateColorize()
-})
-
-// Update coloring when learned vocabulary changes.
+// Watch toggles and learned vocabulary to update word coloring.
+watch(coloringEnabled, updateColorize)
+watch(onlyUnknownColoring, updateColorize)
 watch(
   () => vocabStore.learnedVocab,
   () => {
@@ -252,6 +268,7 @@ watch(
 
     <!-- Toolbar with toggles and analysis button -->
     <div class="mt-2 bg-white flex items-center justify-between p-2 pl-4 rounded shadow">
+      <!-- Left: Toggles for Coloring and Vocabulary -->
       <div class="flex sm:flex-row flex-col items-start gap-2 sm:gap-6">
         <!-- Coloring toggle -->
         <label for="toggle-coloring" class="flex items-center cursor-pointer">
@@ -266,7 +283,6 @@ watch(
           </svg>
           <span class="ml-1">Coloring</span>
         </label>
-
         <!-- Vocabulary filtering toggle -->
         <label for="toggle-vocabulary" class="flex items-center cursor-pointer">
           <input
@@ -281,14 +297,27 @@ watch(
           <span class="ml-1">Vocabulary</span>
         </label>
       </div>
-
-      <!-- Analyze text button -->
-      <button
-        @click="analyzeCurrentText"
-        class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow transition duration-200"
-      >
-        Analyze Text
-      </button>
+      <!-- Right: Gear icon and Analyze button -->
+      <div class="flex items-center gap-4">
+        <!-- Gear icon button -->
+        <button
+          @click="showSettings = !showSettings"
+          class="flex items-center cursor-pointer focus:outline-none"
+        >
+          <svg style="width: 1.25em; height: 1.25em" viewBox="0 0 24 24">
+            <path :d="mdiCog" fill="currentColor" />
+          </svg>
+        </button>
+        <!-- Analyze text button -->
+        <button
+          @click="analyzeCurrentText"
+          class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded shadow transition duration-200"
+        >
+          Analyze Text
+        </button>
+      </div>
+      <!-- Settings panel -->
+      <TextEditorSettings v-if="showSettings" @close="handleSettingsClose" />
     </div>
   </div>
 </template>

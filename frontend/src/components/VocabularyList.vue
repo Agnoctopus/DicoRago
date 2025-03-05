@@ -3,16 +3,23 @@ import { computed } from 'vue'
 import type { Word } from '@/types'
 import VocabularyEntry from './VocabularyEntry.vue'
 import { useVocabStore } from '@/stores/vocabulary'
+import { useSettingsStore } from '@/stores/settings'
 
 /**
  * Component props:
  * - vocab: Array of Word to display.
- * - filter: Boolean to enable filtering of learned words.
  */
-const props = defineProps<{ vocab: Word[]; filter: boolean }>()
+const props = defineProps<{ vocab: Word[] }>()
 
 // Access the vocabulary store.
 const vocabStore = useVocabStore()
+const settingsStore = useSettingsStore()
+
+// Use the settings store
+const filterVocabulary = computed({
+  get: () => settingsStore.vocabularyEnabled,
+  set: () => {},
+})
 
 /**
  * Compute filtered vocabulary:
@@ -20,7 +27,7 @@ const vocabStore = useVocabStore()
  * Otherwise, return all words.
  */
 const filteredVocab = computed(() => {
-  return props.filter
+  return filterVocabulary.value
     ? props.vocab.filter((word) => !vocabStore.isLearned(word.written))
     : props.vocab
 })
