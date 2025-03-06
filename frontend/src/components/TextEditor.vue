@@ -70,7 +70,7 @@ const handleWordSelected = async (unit: Unit | null) => {
     />
 
     <TextEditorControls
-      :is-text-too-long="isTextTooLong"
+      :isTextTooLong="isTextTooLong"
       @analyze="analyzeCurrentText"
       @toggle-settings="showSettings = !showSettings"
     />

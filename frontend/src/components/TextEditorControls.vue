@@ -51,7 +51,7 @@ defineEmits(['analyze', 'toggle-settings'])
       <button
         @click="$emit('analyze')"
         :disabled="isTextTooLong"
-        class="bg-blue-500 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-600 transition duration-200"
+        class="bg-blue-500 text-white font-semibold py-2 px-4 rounded shadow hover:bg-blue-600 transition duration-200 disabled:bg-blue-300 disabled:cursor-not-allowed disabled:hover:bg-blue-300"
       >
         Analyze Text
       </button>

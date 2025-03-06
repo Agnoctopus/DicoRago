@@ -22,7 +22,7 @@ const vocabStore = useVocabStore()
 // Reactive variables
 const isEditable = ref(true)
 const isMobile = /Mobi|Android/i.test(navigator.userAgent)
-const textLength = computed(() => (editor.value ? editor.value.innerHTML.length : 0))
+const textLength = ref(0)
 const isTextTooLong = computed(() => textLength.value > props.maxLength)
 
 // Use the settings store for the "only unknown" toggle.
@@ -42,6 +42,9 @@ const onlyUnknownColoring = computed({
 const updateText = () => {
   if (editor.value) {
     emit('text-updated', editor.value.innerText)
+    textLength.value = editor.value.innerText.length
+  } else {
+    textLength.value = 0
   }
 }
 
