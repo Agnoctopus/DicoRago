@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from app.models import Example, Sense, Word
+from app.models import Example, Sense, User, Word
 
 
 class WordRepository:
@@ -30,14 +30,14 @@ class WordRepository:
 
     async def get_by_id(self, word_id: int, senses: bool = False) -> Optional[Word]:
         """
-        Retrieve Word(s) by id.
+        Retrieve a Word by id.
 
         Args:
             id (int): Word identifier.
             senses (bool): If True, eagerly load associated senses.
 
         Returns:
-            Sequence[Word]: Matching Word objects.
+            Optional[Word]: Matching Word object.
         """
         stmt = select(Word).where(Word.id == word_id)
         if senses:
@@ -163,3 +163,42 @@ class ExampleRepository:
         examples = result.scalars().all()
 
         return examples
+
+
+class UserRepository:
+    """
+    Repository for User model.
+    """
+
+    def __init__(self, session: AsyncSession):
+        """
+        Initialize the UserRepository.
+
+        Args:
+            session (AsyncSession): Async session used for operations.
+        """
+        self.session = session
+
+    async def get_by_google_id(self, google_id: int) -> Optional[User]:
+        """
+        Retrieve an Example by a Google id.
+
+        Args:
+            google_id (int): Identifier of the User.
+
+        Returns:
+            Optional[User]: Matching User object.
+        """
+        stmt = select(User).where(User.google_id == google_id)
+        result = await self.session.execute(stmt)
+        user = result.scalars().first()
+
+        return user
+
+    async def create(self, google_id: int, email: str, name: str) -> User:
+        user = User(google_id=google_id, email=email, name=name)
+
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
