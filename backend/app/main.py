@@ -5,11 +5,12 @@ Main FastAPI application module.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import init_db
-from app.routes import router
+from app.config import settings
+from app.databases import dict_db, main_db
+from app.routes import analysis, auth, user
 
 # Create FastAPI app
-app = FastAPI()
+app = FastAPI(tittle=settings.APP_NAME)
 
 # Authorized origins for CORS
 origins = [
@@ -27,12 +28,15 @@ app.add_middleware(
 )
 
 # Register routes
-app.include_router(router)
+app.include_router(analysis.router, tags=["Analysis"])
+app.include_router(auth.router, tags=["Auth"])
+app.include_router(user.router, tags=["User"])
 
 
 @app.on_event("startup")
 async def startup() -> None:
     """
-    Startup event handler, initialize the database.
+    Startup event handler, initialize the databases.
     """
-    await init_db()
+    await dict_db.init_db()
+    await main_db.init_db()

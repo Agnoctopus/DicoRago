@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analyse import get_vocabulary
-from app.database import SessionLocal, get_session
+from app.databases.dict_db import SessionLocal, get_session
 from app.repository import ExampleRepository, SenseRepository, WordRepository
 from app.schemas import (
     AnalyseRequestSchema,
@@ -30,7 +30,7 @@ from app.schemas import (
 )
 
 # Create API root router
-router = APIRouter(prefix="", tags=[])
+router = APIRouter(prefix="", tags=["Analysis"])
 
 
 @router.post("/analyze", response_model=AnalysisSchema)

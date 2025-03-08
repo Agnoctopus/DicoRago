@@ -1,5 +1,5 @@
 """
-Module defining ORM models for database backed objects.
+Module defining ORM models for database backed dictionary related objects.
 """
 
 from typing import List
@@ -7,7 +7,7 @@ from typing import List
 from sqlalchemy import ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.databases.dict_db import Base
 
 
 class Word(Base):
