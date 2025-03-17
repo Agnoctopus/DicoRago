@@ -1,5 +1,5 @@
 """
-Database configuration module.
+Main database configuration module.
 """
 
 from typing import AsyncGenerator
@@ -10,7 +10,7 @@ from sqlalchemy.orm import DeclarativeBase
 from app.config import settings
 
 # Get database URL from app settings
-DATABASE_URL = settings.DATABASE_URL
+DATABASE_URL = settings.DATABASE_MAIN_URL
 
 # Create SQL engine and session maker
 engine = create_async_engine(DATABASE_URL, echo=False)

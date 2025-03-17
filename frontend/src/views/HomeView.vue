@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import TextEditor from '@/components/TextEditor.vue'
 import UnitDetails from '@/components/UnitDetails.vue'
 import VocabularyList from '@/components/VocabularyList.vue'
+import { useUserStore } from '@/stores/user'
 import type { Unit, Word, Analysis } from '@/types'
 
 // Reactive state: currently selected unit and vocabulary list.
 const selectedUnit = ref<Unit | null>(null)
 const vocab = ref<Word[]>([])
+
+// Access the user store.
+const userStore = useUserStore()
 
 /**
  * Updates the selected unit from TextEditor.
@@ -24,6 +28,11 @@ const handleWordSelected = async (unit: Unit | null) => {
 const handleAnalysisComplete = (analysis: Analysis) => {
   vocab.value = analysis.vocab
 }
+
+// Fetch user data when the component mounts.
+onMounted(async () => {
+  await userStore.fetchUser()
+})
 </script>
 
 <template>

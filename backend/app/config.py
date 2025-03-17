@@ -13,7 +13,16 @@ class Settings(BaseSettings):
         DATABASE_URL (str): The URL of the database.
     """
 
-    DATABASE_URL: str
+    APP_NAME: str = "DicoRago"
+
+    # Databases
+    DATABASE_MAIN_URL: str
+    DATABASE_DICT_URL: str
+
+    # Auth
+    GOOGLE_CLIENT_ID: str
+    APPLE_CLIENT_ID: str
+    AUTH_SECRET: str
 
     class Config:
         """

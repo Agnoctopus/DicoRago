@@ -1,13 +1,26 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="">
   <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Set character encoding, favicon link and viewport -->
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Page title -->
     <title>DicoRago</title>
+
+    <!-- Include Google authentication service SDK -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Include Apple authentication service SDK -->
+    <script
+      type="text/javascript"
+      src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"
+    ></script>
   </head>
   <body>
+    <!-- Application root element -->
     <div id="app"></div>
+    <!-- Load main TypeScript module for initializing the app -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ########################
   #   BACKEND (FastAPI)  #
@@ -9,8 +7,9 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend
+    network_mode: bridge
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
 
   ########################
   #   FRONTEND (Vue.js)  #
@@ -20,7 +19,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend
+    network_mode: bridge
     ports:
-      - "8080:80"
+      - "127.0.0.1:8080:80"
     depends_on:
       - backend

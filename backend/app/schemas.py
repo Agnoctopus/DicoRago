@@ -141,3 +141,23 @@ class WordWithSensesSchema(WordSchema):
         """
 
         from_attributes = True
+
+
+class UserInfoSchema(BaseModel):
+    """
+    Schema representing a user.
+
+    Attributes:
+        name (str): Username.
+        email (str): E-mail.
+    """
+
+    name: str
+    email: str
+
+    class Config:
+        """
+        Configuration for the WordWithSensesSchema class.
+        """
+
+        from_attributes = True

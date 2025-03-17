@@ -67,3 +67,13 @@ export interface Word {
   /** Associated senses. */
   senses: Sense[]
 }
+
+/**
+ * Represents a user.
+ */
+export interface User {
+  /** Username. */
+  name: string
+  /** E-mail. */
+  email: string
+}

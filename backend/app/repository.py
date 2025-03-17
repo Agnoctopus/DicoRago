@@ -4,6 +4,7 @@ Module providing async repositories for database models.
 Each repository provides methods to perform operations on specific records.
 """
 
+from random import randint
 from typing import List, Optional, Sequence
 
 from sqlalchemy import case
@@ -11,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
 
-from app.models import Example, Sense, Word
+from app.models import Example, Sense, User, Word
 
 
 class WordRepository:
@@ -30,14 +31,14 @@ class WordRepository:
 
     async def get_by_id(self, word_id: int, senses: bool = False) -> Optional[Word]:
         """
-        Retrieve Word(s) by id.
+        Retrieve a Word by id.
 
         Args:
             id (int): Word identifier.
             senses (bool): If True, eagerly load associated senses.
 
         Returns:
-            Sequence[Word]: Matching Word objects.
+            Optional[Word]: Matching Word object.
         """
         stmt = select(Word).where(Word.id == word_id)
         if senses:
@@ -163,3 +164,116 @@ class ExampleRepository:
         examples = result.scalars().all()
 
         return examples
+
+
+class UserRepository:
+    """
+    Repository for User model.
+    """
+
+    def __init__(self, session: AsyncSession):
+        """
+        Initialize the UserRepository.
+
+        Args:
+            session (AsyncSession): Async session used for operations.
+        """
+        self.session = session
+
+    async def get_by_google_id(self, google_id: int) -> Optional[User]:
+        """
+        Retrieve an Example by a Google id.
+
+        Args:
+            google_id (int): Google identifier of the User.
+
+        Returns:
+            Optional[User]: Matching User object.
+        """
+        stmt = select(User).where(User.google_id == google_id)
+        result = await self.session.execute(stmt)
+        user = result.scalars().first()
+
+        return user
+
+    async def get_by_apple_id(self, apple_id: int) -> Optional[User]:
+        """
+        Retrieve an Example by a Google id.
+
+        Args:
+            apple_id (int): Apple identifier of the User.
+
+        Returns:
+            Optional[User]: Matching User object.
+        """
+        stmt = select(User).where(User.apple_id == apple_id)
+        result = await self.session.execute(stmt)
+        user = result.scalars().first()
+
+        return user
+
+    async def get_by_name(self, name: str) -> Optional[User]:
+        """
+        Retrieve an Example by a Google id.
+
+        Args:
+            name (int): Name the User.
+
+        Returns:
+            Optional[User]: Matching User object.
+        """
+        stmt = select(User).where(User.name == name)
+        result = await self.session.execute(stmt)
+        user = result.scalars().first()
+
+        return user
+
+    async def create_with_google(self, google_id: int, email: str, name: str) -> User:
+        """
+        Create a user with Google credentials.
+
+        Args:
+            google_id (int): Google account identifier.
+            email (str): User email address.
+            name (str): Desired user name.
+
+        Returns:
+            User: Newly created user object.
+        """
+        # Handle duplicate username
+        duplicate_user = await self.get_by_name(name)
+        if duplicate_user is not None:
+            name += f"#{randint(1000,9999)}"
+
+        # Create user object with Google credentials
+        user = User(google_id=google_id, email=email, name=name)
+
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
+
+    async def create_with_apple(self, apple_id: int, email: str, name: str) -> User:
+        """
+        Create a user with Apple credentials.
+
+        Args:
+            apple_id (int): Apple account identifier.
+            email (str): User email address.
+            name (str): Desired user name.
+
+        Returns:
+            User: Newly created user object.
+        """
+        # Handle duplicate username
+        duplicate_user = await self.get_by_name(name)
+        if duplicate_user is not None:
+            name += f"#{randint(1000,9999)}"
+
+        # Create user object with Apple credentials
+        user = User(apple_id=apple_id, email=email, name=name)
+
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user)
+        return user
