@@ -77,3 +77,25 @@ export interface User {
   /** E-mail. */
   email: string
 }
+
+/**
+ * Represents the vocabulary status.
+ */
+export interface VocStatus {
+  /** Total number of words learned. */
+  learned_count: number
+  /** Timestamp of the most recent vocabulary update. */
+  last_update: Date
+}
+
+/**
+ * Represents a learned word.
+ */
+export interface LearnedWord {
+  /** Written form. */
+  written: string
+  /** Whether the word is learned. */
+  learned: boolean
+  /** Timestamp of the last update. */
+  updated_at: Date
+}

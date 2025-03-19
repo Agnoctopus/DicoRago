@@ -4,13 +4,16 @@ import TextEditor from '@/components/TextEditor.vue'
 import UnitDetails from '@/components/UnitDetails.vue'
 import VocabularyList from '@/components/VocabularyList.vue'
 import { useUserStore } from '@/stores/user'
+import { useVocabStore } from '@/stores/vocabulary'
+
 import type { Unit, Word, Analysis } from '@/types'
 
 // Reactive state: currently selected unit and vocabulary list.
 const selectedUnit = ref<Unit | null>(null)
 const vocab = ref<Word[]>([])
 
-// Access the user store.
+// Access the vocab and user store.
+const vocabStore = useVocabStore()
 const userStore = useUserStore()
 
 /**
@@ -32,6 +35,10 @@ const handleAnalysisComplete = (analysis: Analysis) => {
 // Fetch user data when the component mounts.
 onMounted(async () => {
   await userStore.fetchUser()
+
+  if (userStore.user) {
+    await vocabStore.loadVocabulary()
+  }
 })
 </script>
 

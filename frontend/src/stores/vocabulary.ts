@@ -1,53 +1,137 @@
 import { readonly, ref } from 'vue'
 import { defineStore } from 'pinia'
+import { updateUserVoc, getVocSince, getVoc, getStatusVoc } from '@/api'
+import { useUserStore } from '@/stores/user'
+import type { LearnedWord, VocStatus } from '@/types'
 
-/**
- * Pinia store for managing learned vocabulary.
- */
 export const useVocabStore = defineStore('learned', () => {
-  // Reactive array holding learned vocabulary words.
-  const learnedVocab = ref<string[]>([])
+  // Reactive array holding the learned vocabulary words.
+  const learnedVocab = ref<LearnedWord[]>([])
+  // Access the user store to check if the user is logged in.
+  const userStore = useUserStore()
+
+  // In offline mode, lastSynced is kept in memory (initialized to epoch).
+  const lastSynced = ref<Date>(new Date(0))
 
   /**
-   * Loads learned vocabulary from localStorage.
+   * Loads vocabulary from localStorage (used in offline mode).
    */
-  function loadLearned() {
+  function loadLocal() {
     const stored = localStorage.getItem('learnedVocabulary')
     if (stored) {
       try {
         learnedVocab.value = JSON.parse(stored)
       } catch (error) {
-        // Reset if parsing fails.
         learnedVocab.value = []
-        console.error('Error loading learned vocabulary:', error)
+        console.error('Error loading learned vocabulary from localStorage:', error)
       }
     }
   }
 
   /**
-   * Toggles the learned status of a vocabulary word.
-   * @param vocab - Vocabulary word to toggle.
+   * Saves vocabulary to localStorage (used in offline mode).
    */
-  function toggleLearned(vocab: string) {
-    if (learnedVocab.value.includes(vocab)) {
-      learnedVocab.value = learnedVocab.value.filter((v) => v !== vocab)
-    } else {
-      learnedVocab.value.push(vocab)
-    }
+  function saveLocal() {
     localStorage.setItem('learnedVocabulary', JSON.stringify(learnedVocab.value))
   }
 
   /**
-   * Checks if a vocabulary word is marked as learned.
-   * @param vocab - Vocabulary word to check.
-   * @returns True if the word is learned.
+   * Loads vocabulary:
+   * - If the user is connected, it is loaded via the API (getVoc()) and lastSynced is updated from the server status.
+   * - Otherwise, the vocabulary is loaded from localStorage.
    */
-  function isLearned(vocab: string): boolean {
-    return learnedVocab.value.includes(vocab)
+  async function loadVocabulary() {
+    if (userStore.user) {
+      try {
+        const words: LearnedWord[] = await getVoc()
+        learnedVocab.value = words
+        const status = await getStatusVoc()
+        lastSynced.value = status.last_update
+      } catch (error) {
+        console.error('Error loading vocabulary from server:', error)
+      }
+    } else {
+      loadLocal()
+    }
   }
 
-  // Load learned vocabulary on store initialization.
-  loadLearned()
+  /**
+   * Toggles the learned status of a vocabulary word.
+   * In connected mode, the update is sent via the API and recent changes are synchronized with getVocSince().
+   * In offline mode, the change is saved to localStorage.
+   *
+   * @param vocab - The vocabulary word to toggle.
+   */
+  async function toggleLearned(vocab: string) {
+    const updated_at = new Date()
+    const previousLastSynced = lastSynced.value
 
-  return { learnedVocab: readonly(learnedVocab), toggleLearned, isLearned }
+    // Check if the word already exists; if it does, remove it (mark as not learned), otherwise add it.
+    const index = learnedVocab.value.findIndex((item) => item.written === vocab)
+    if (index === -1) {
+      learnedVocab.value.push({ written: vocab, learned: true, updated_at })
+    } else {
+      learnedVocab.value.splice(index, 1)
+    }
+
+    if (userStore.user) {
+      // Connected mode: update the server.
+      try {
+        const newStatus = index === -1
+        const status: VocStatus = await updateUserVoc(vocab, newStatus, updated_at)
+        // If the server's last update timestamp differs from our previous sync, fetch recent changes.
+        if (status.last_update.getTime() !== previousLastSynced.getTime()) {
+          const words: LearnedWord[] = await getVocSince(previousLastSynced)
+          words.forEach((serverWord) => {
+            const idx = learnedVocab.value.findIndex(
+              (localWord) => localWord.written === serverWord.written,
+            )
+            if (idx !== -1) {
+              // Update the local word if the server version is more recent.
+              if (serverWord.updated_at.getTime() > learnedVocab.value[idx].updated_at.getTime()) {
+                learnedVocab.value[idx].updated_at = serverWord.updated_at
+                // Remove the word locally if it is no longer learned on the server.
+                if (!serverWord.learned) {
+                  learnedVocab.value.splice(idx, 1)
+                }
+              }
+            } else {
+              // If the word is not in the local list and is learned on the server, add it.
+              if (serverWord.learned) {
+                learnedVocab.value.push(serverWord)
+              }
+            }
+          })
+        }
+        // Update the in-memory sync timestamp.
+        lastSynced.value = updated_at
+      } catch (error) {
+        console.error('Failed to update vocabulary on the server:', error)
+      }
+    } else {
+      // Offline mode: save the updated vocabulary to localStorage.
+      saveLocal()
+    }
+  }
+
+  /**
+   * Checks if a vocabulary word is learned.
+   *
+   * @param vocab - The vocabulary word to check.
+   * @returns True if the word is present in the learned vocabulary.
+   */
+  function isLearned(vocab: string): boolean {
+    return learnedVocab.value.some((item) => item.written === vocab)
+  }
+
+  // Initial load of the vocabulary.
+  loadVocabulary()
+
+  return {
+    learnedVocab: readonly(learnedVocab),
+    lastSynced: readonly(lastSynced),
+    toggleLearned,
+    isLearned,
+    loadVocabulary,
+  }
 })

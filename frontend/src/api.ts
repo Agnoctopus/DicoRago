@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Analysis, Example, User } from '@/types'
+import type { Analysis, Example, User, VocStatus, LearnedWord } from '@/types'
 
 /** Base URL for the REST API */
 export const restAPIBaseURL = 'http://localhost:8000'
@@ -37,4 +37,73 @@ export const getExamples = async (sense_id: number): Promise<Example[]> => {
 export const getUser = async (): Promise<User | null> => {
   const response = await api.get<User>('/user/me')
   return response.data
+}
+
+/**
+ * Updates the learning status of a vocabulary word for the current user.
+ *
+ * @param written - Written form.
+ * @param learned - New learning status (true if learned, false otherwise).
+ * @param updated_at - Ttimestamp of the update.
+ * @returns A Promise resolving to the previous VocStatus object.
+ */
+export const updateUserVoc = async (
+  written: string,
+  learned: boolean,
+  updated_at: Date,
+): Promise<VocStatus> => {
+  const response = await api.put<VocStatus>(`/user/voc`, {
+    written: written,
+    learned: learned,
+    updated_at: updated_at.toISOString(),
+  })
+  const ret = response.data
+  ret.last_update = new Date(`${ret.last_update}Z`)
+  return ret
+}
+
+/**
+ * Retrieves vocabulary words that have been updated since a given date.
+ *
+ * @param since - Starting date for retrieving.
+ * @returns A Promise resolving to an array of LearnedWord objects.
+ */
+export const getVocSince = async (since: Date): Promise<[LearnedWord]> => {
+  const response = await api.get<[LearnedWord]>(`/user/voc/change/${since.toISOString()}`)
+  const ret = response.data
+
+  ret.forEach((word) => {
+    word.updated_at = new Date(`${word.updated_at}Z`)
+  })
+  return ret
+}
+
+/**
+ * Retrieves the current user's vocabulary status.
+ *
+ * @returns A Promise resolving to a VocStatus object.
+ */
+export const getStatusVoc = async (): Promise<VocStatus> => {
+  const response = await api.get<VocStatus>(`/user/voc/status`)
+  const ret = response.data
+
+  ret.last_update = new Date(`${ret.last_update}Z`)
+
+  return ret
+}
+
+/**
+ * Retrieves all vocabulary words for the current user.
+ *
+ * @returns A Promise resolving to an array of LearnedWord objects.
+ */
+export const getVoc = async (): Promise<[LearnedWord]> => {
+  const response = await api.get<[LearnedWord]>(`/user/voc`)
+  const ret = response.data
+
+  ret.forEach((word) => {
+    word.updated_at = new Date(`${word.updated_at}Z`)
+  })
+
+  return ret
 }
