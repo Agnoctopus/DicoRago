@@ -4,6 +4,7 @@ Module providing async repositories for database models.
 Each repository provides methods to perform operations on specific records.
 """
 
+from datetime import datetime
 from random import randint
 from typing import List, Optional, Sequence
 
@@ -11,8 +12,10 @@ from sqlalchemy import case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql import func
 
-from app.models import Example, Sense, User, Word
+from app.models import Example, LearnedWord, Sense, User, Word
+from app.schemas import LearnedWordSchema, VocStatusSchema
 
 
 class WordRepository:
@@ -277,3 +280,139 @@ class UserRepository:
         await self.session.commit()
         await self.session.refresh(user)
         return user
+
+
+class VocRepository:
+    """
+    Repository for LearnedWord model.
+    """
+
+    def __init__(self, session: AsyncSession, user_id: int):
+        """
+        Initialize the vocabulary repository.
+
+        Args:
+            session (AsyncSession): Async session used for operations.
+            user_id (int): User identifier for operation.
+        """
+        self.session = session
+        self.user_id = user_id
+
+    async def get_by_written(self, written: str) -> Optional[LearnedWord]:
+        """
+        Retrieve a LearnedWord record by its written form.
+
+        Args:
+            written (str): Written form of the word.
+
+        Returns:
+            Optional[LearnedWord]: Matching LearnedWord record if found; otherwise, None.
+        """
+        stmt = select(LearnedWord).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.written == written
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().first()
+
+    async def get_all(self) -> List[LearnedWord]:
+        """
+        Retrieve all LearnedWord records marked as learned for the user.
+
+        Returns:
+            List[LearnedWord]: Learned words.
+        """
+        stmt = select(LearnedWord).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.learned == True
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def get_since(self, since: datetime) -> List[LearnedWord]:
+        """
+        Retrieve all LearnedWord records updated on or after the specified datetime.
+
+        Args:
+            since (datetime): The datetime to start the search from.
+
+        Returns:
+            List[LearnedWord]: LearnedWord records updated since the given datetime.
+        """
+        stmt = select(LearnedWord).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.updated_at >= since
+        )
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
+    async def add_learned(self, word: LearnedWordSchema) -> LearnedWord:
+        """
+        Add a new LearnedWord record to the user's vocabulary.
+
+        Args:
+            word (LearnedWordSchema): The data schema containing the learned word details.
+
+        Returns:
+            LearnedWord: Newly created LearnedWord record.
+        """
+        learned_word = LearnedWord(
+            written=word.written,
+            learned=word.learned,
+            updated_at=word.updated_at,
+            user_id=self.user_id,
+        )
+        self.session.add(learned_word)
+        await self.session.commit()
+        return learned_word
+
+    async def remove_learned(self, word: LearnedWord):
+        """
+        Remove an existing LearnedWord record from the user's vocabulary.
+
+        Args:
+            word (LearnedWord): LearnedWord record to remove.
+        """
+        self.session.delete(word)
+        await self.session.commit()
+
+    async def get_last_update_at(self) -> Optional[datetime]:
+        """
+        Retrieve the timestamp of the most recent update among the user's LearnedWord records.
+
+        Returns:
+            Optional[datetime]: Last update timestamp if available; otherwise, None.
+        """
+        stmt = (
+            select(LearnedWord)
+            .where(LearnedWord.user_id == self.user_id)
+            .order_by(LearnedWord.updated_at.desc())
+            .limit(1)
+        )
+        result = await self.session.execute(stmt)
+        word = result.scalars().first()
+        return word.updated_at if word else None
+
+    async def get_count(self) -> int:
+        """
+        Count the number of LearnedWord records marked as learned for the user.
+
+        Returns:
+            int: Count of learned words.
+        """
+        stmt = select(func.count()).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.learned == True
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none() or 0
+
+    async def get_status(self) -> VocStatusSchema:
+        """
+        Retrieve the user's vocabulary status.
+
+        Returns:
+            VocStatusSchema: Schema containing vocabulary status details.
+        """
+        learned_count = await self.get_count()
+        if learned_count != 0:
+            last_update_at = await self.get_last_update_at()
+        else:
+            last_update_at = None
+        return VocStatusSchema(learned_count=learned_count, last_update=last_update_at)

@@ -1,12 +1,15 @@
+from datetime import datetime
+from typing import List, Optional
+
 import jwt
 from fastapi import APIRouter, Cookie, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.databases.main_db import get_session
-from app.models import LearnedWord, User
-from app.repository import UserRepository
-from app.schemas import UserInfoSchema
+from app.models import User
+from app.repository import UserRepository, VocRepository
+from app.schemas import LearnedWordSchema, UserInfoSchema, VocStatusSchema
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -76,24 +79,110 @@ async def get_user_info(
     return user
 
 
-@router.post("/learned/{word}")
-async def add_learned_word(
-    word: str,
+@router.put("/voc", response_model=Optional[VocStatusSchema])
+async def update_voc(
+    voc_req: LearnedWordSchema,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ):
     """
-    Add a learned word for the current user.
+    Put a vocabulary word.
 
     Args:
-        word (str): Word to be added as learned.
+        voc_req (LearnedWordSchema): Vocabulary word details to put.
         user (User): Authenticated user.
         session (AsyncSession): DB session dependency.
 
     Returns:
-        None
+        Optional[VocStatusSchema]: Previous vocabulary status.
     """
-    # Create a nd Add a LearnedWord object
-    learned_word = LearnedWord(word=word, user_id=user.id)
-    await session.add(learned_word)
+    # Create repository instance to access user data
+    repository = VocRepository(session, user.id)
+
+    # Get previous status and learned word
+    status = await repository.get_status()
+    learned_word = await repository.get_by_written(voc_req.written)
+
+    if learned_word is None:
+        # New word: add to vocabulary
+        await repository.add_learned(voc_req)
+        return status
+
+    # Update existing word
+    learned_word.learned = voc_req.learned
+    learned_word.updated_at = voc_req.updated_at
     await session.commit()
+
+    return status
+
+
+@router.get("/voc", response_model=List[LearnedWordSchema])
+async def get_voc(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Retrieve all learned vocabulary words.
+
+    Args:
+        user (User): Authenticated user.
+        session (AsyncSession): DB session dependency.
+
+    Returns:
+        List[LearnedWordSchema]: A list of learned vocabulary words.
+    """
+    # Create repository instance to access user data
+    repository = VocRepository(session, user.id)
+
+    learned_words = await repository.get_all()
+
+    return learned_words
+
+
+@router.get("/voc/change/{since}", response_model=List[LearnedWordSchema])
+async def get_voc(
+    since: datetime,
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Retrieve vocabulary words updated since a specified datetime.
+
+    Args:
+        since (datetime): Datetime from which to retrieve updates.
+        user (User): Authenticated user.
+        session (AsyncSession): DB session dependency.
+
+    Returns:
+        List[LearnedWordSchema]: Vocabulary words updated since the specified datetime.
+    """
+    # Create repository instance to access user data
+    repository = VocRepository(session, user.id)
+
+    learned_words = await repository.get_since(since)
+
+    return learned_words
+
+
+@router.get("/voc/status", response_model=Optional[VocStatusSchema])
+async def get_last_voc(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+):
+    """
+    Retrieve the vocabulary status.
+
+    Args:
+        user (User): Authenticated user.
+        session (AsyncSession): DB session dependency.
+
+    Returns:
+        Optional[VocStatusSchema]: The vocabulary status of the user.
+    """
+    # Create repository instance to access user data
+    repository = VocRepository(session, user.id)
+
+    status = await repository.get_status()
+
+    return status
+

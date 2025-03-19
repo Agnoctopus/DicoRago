@@ -2,6 +2,7 @@
 Pydantic schemas for requests and responses.
 """
 
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -157,7 +158,43 @@ class UserInfoSchema(BaseModel):
 
     class Config:
         """
-        Configuration for the WordWithSensesSchema class.
+        Configuration for the UserInfoSchema class.
         """
 
         from_attributes = True
+
+
+class LearnedWordSchema(BaseModel):
+    """
+    Schema representing a learned word.
+
+    Attributes:
+        written (str): Written form.
+        learned (bool): Learned status.
+        updated_at (datetime): Timestamp of the last update.
+    """
+
+    written: str
+    learned: bool
+    updated_at: datetime
+
+    class Config:
+        """
+        Configuration for the LearnedWord class.
+        """
+
+        from_attributes = True
+
+
+class VocStatusSchema(BaseModel):
+    """
+    Represents the vocabulary status of a user.
+
+    Attributes:
+        learned_count (int): Total number of words learned.
+        last_update (Optional[datetime]): Timestamp of the most recent vocabulary update.
+    """
+
+    learned_count: int
+    last_update: Optional[datetime]
+
