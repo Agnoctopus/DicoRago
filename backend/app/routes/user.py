@@ -185,4 +185,3 @@ async def get_last_voc(
     status = await repository.get_status()
 
     return status
-

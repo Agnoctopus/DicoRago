@@ -50,7 +50,7 @@ class LearnedWord(Base):
 
     Attributes:
         id (int): Unique identifier.
-        written (str): The written form.
+        written (str): Written form.
         learned (bool): Whether the word is learned.
         updated_at (datetime): Timestamp of the last update.
         user_id (int): Foreign key to the user.

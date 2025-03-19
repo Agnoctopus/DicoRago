@@ -170,7 +170,7 @@ class LearnedWordSchema(BaseModel):
 
     Attributes:
         written (str): Written form.
-        learned (bool): Learned status.
+        learned (bool): Whether the word is learned.
         updated_at (datetime): Timestamp of the last update.
     """
 
@@ -188,7 +188,7 @@ class LearnedWordSchema(BaseModel):
 
 class VocStatusSchema(BaseModel):
     """
-    Represents the vocabulary status of a user.
+    Represents the vocabulary status
 
     Attributes:
         learned_count (int): Total number of words learned.
