@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 import jwt
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,7 +43,7 @@ async def fetch_jwks(jwks_url: str) -> Any:
 
 def get_signing_key(
     certs: Dict[str, Any], kid: str
-) -> Optional[jwt.algorithms.AllowedRSAKeys]:
+) -> Optional[RSAPublicKey | RSAPrivateKey]:
     """
     Get the signing key matching the provided kid.
 
