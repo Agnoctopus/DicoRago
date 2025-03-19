@@ -183,7 +183,7 @@ class UserRepository:
         """
         self.session = session
 
-    async def get_by_google_id(self, google_id: int) -> Optional[User]:
+    async def get_by_google_id(self, google_id: str) -> Optional[User]:
         """
         Retrieve an Example by a Google id.
 
@@ -199,7 +199,7 @@ class UserRepository:
 
         return user
 
-    async def get_by_apple_id(self, apple_id: int) -> Optional[User]:
+    async def get_by_apple_id(self, apple_id: str) -> Optional[User]:
         """
         Retrieve an Example by a Google id.
 
@@ -231,7 +231,7 @@ class UserRepository:
 
         return user
 
-    async def create_with_google(self, google_id: int, email: str, name: str) -> User:
+    async def create_with_google(self, google_id: str, email: str, name: str) -> User:
         """
         Create a user with Google credentials.
 
@@ -256,7 +256,7 @@ class UserRepository:
         await self.session.refresh(user)
         return user
 
-    async def create_with_apple(self, apple_id: int, email: str, name: str) -> User:
+    async def create_with_apple(self, apple_id: str, email: str, name: str) -> User:
         """
         Create a user with Apple credentials.
 

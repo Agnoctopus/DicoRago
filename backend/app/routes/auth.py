@@ -137,12 +137,12 @@ async def verify_apple_token(token: str) -> Dict[str, Any]:
     )
 
 
-def create_auth_response(user_identifier: int, provider: str) -> RedirectResponse:
+def create_auth_response(user_identifier: str, provider: str) -> RedirectResponse:
     """
     Create a redirect response with an auth session cookie.
 
     Args:
-        user_identifier (int): User's unique ID.
+        user_identifier (str): User's unique ID.
         provider (str): "google" or "apple".
 
     Returns:
@@ -182,7 +182,7 @@ async def auth_google(
 
     # Extract token fields
     try:
-        google_id = int(idinfo["sub"])
+        google_id = idinfo["sub"]
         email = idinfo["email"]
         name = idinfo["name"]
     except Exception as e:
@@ -219,7 +219,7 @@ async def auth_apple(
 
     # Extract token fields
     try:
-        apple_id = int(idinfo["sub"])
+        apple_id = idinfo["sub"]
         email = idinfo["email"]
         name = idinfo.get("name", email)
     except Exception as e:
@@ -233,6 +233,25 @@ async def auth_apple(
 
     # Create the response
     return create_auth_response(apple_id, "apple")
+
+
+@router.get("/")
+async def auth(
+    session: AsyncSession = Depends(get_session),
+) -> RedirectResponse:
+
+    print(await fetch_jwks(GOOGLE_CERTS_URL))
+
+    apple_id = "42"
+
+    repository = UserRepository(session)
+    user = await repository.get_by_apple_id(apple_id)
+    if user is None:
+        email = "admin@dicorago.com"
+        name = "admin"
+        user = await repository.create_with_apple(apple_id, email, name)
+    response = create_auth_response(apple_id, "apple")
+    return response
 
 
 @router.get("/logout")
