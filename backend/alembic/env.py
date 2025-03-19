@@ -18,6 +18,7 @@ from app.databases.main_db import DATABASE_URL, Base
 # Metadata for migrations
 target_metadata = Base.metadata
 
+
 def run_migrations_offline() -> None:
     # Configure context for offline migrations
     url = DATABASE_URL
@@ -32,6 +33,7 @@ def run_migrations_offline() -> None:
         # Run offline migrations
         context.run_migrations()
 
+
 def do_run_migrations(connection: Connection) -> None:
     # Configure context with active connection
     context.configure(connection=connection, target_metadata=target_metadata)
@@ -39,6 +41,7 @@ def do_run_migrations(connection: Connection) -> None:
     with context.begin_transaction():
         # Run online migrations
         context.run_migrations()
+
 
 async def run_async_migrations() -> None:
     # Prepare async engine configuration
@@ -58,9 +61,11 @@ async def run_async_migrations() -> None:
 
     await connectable.dispose()
 
+
 def run_migrations_online() -> None:
     # Run async migrations using asyncio
     asyncio.run(run_async_migrations())
+
 
 # Ensure online mode
 assert not context.is_offline_mode()

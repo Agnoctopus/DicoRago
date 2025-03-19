@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 import httpx
 import jwt
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey, RSAPrivateKey
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -233,25 +233,6 @@ async def auth_apple(
 
     # Create the response
     return create_auth_response(apple_id, "apple")
-
-
-@router.get("/")
-async def auth(
-    session: AsyncSession = Depends(get_session),
-) -> RedirectResponse:
-
-    print(await fetch_jwks(GOOGLE_CERTS_URL))
-
-    apple_id = "42"
-
-    repository = UserRepository(session)
-    user = await repository.get_by_apple_id(apple_id)
-    if user is None:
-        email = "admin@dicorago.com"
-        name = "admin"
-        user = await repository.create_with_apple(apple_id, email, name)
-    response = create_auth_response(apple_id, "apple")
-    return response
 
 
 @router.get("/logout")

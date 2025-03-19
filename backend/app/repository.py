@@ -415,5 +415,5 @@ class VocRepository:
         if learned_count != 0:
             last_update_at = await self.get_last_update_at()
         else:
-            last_update_at = None
+            last_update_at = datetime.fromtimestamp(0)
         return VocStatusSchema(learned_count=learned_count, last_update=last_update_at)

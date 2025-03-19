@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List
 
 import jwt
 from fastapi import APIRouter, Cookie, Depends, HTTPException
@@ -79,12 +79,12 @@ async def get_user_info(
     return UserInfoSchema.from_orm(user)
 
 
-@router.put("/voc", response_model=Optional[VocStatusSchema])
+@router.put("/voc", response_model=VocStatusSchema)
 async def update_voc(
     voc_req: LearnedWordSchema,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-) -> Optional[VocStatusSchema]:
+) -> VocStatusSchema:
     """
     Put a vocabulary word.
 
@@ -164,11 +164,11 @@ async def get_voc_change(
     return [LearnedWordSchema.from_orm(word) for word in learned_words]
 
 
-@router.get("/voc/status", response_model=Optional[VocStatusSchema])
+@router.get("/voc/status", response_model=VocStatusSchema)
 async def get_last_voc(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-) -> Optional[VocStatusSchema]:
+) -> VocStatusSchema:
     """
     Retrieve the vocabulary status.
 
@@ -177,7 +177,7 @@ async def get_last_voc(
         session (AsyncSession): DB session dependency.
 
     Returns:
-        Optional[VocStatusSchema]: The vocabulary status of the user.
+        VocStatusSchema: The vocabulary status of the user.
     """
     # Create repository instance to access user data
     repository = VocRepository(session, user.id)
