@@ -1,3 +1,7 @@
+"""
+Aggregates all ORM database models
+"""
+
 from .dictionary import Example, Sense, Word
 from .user import LearnedWord, User
 

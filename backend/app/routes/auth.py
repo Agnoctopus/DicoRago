@@ -1,5 +1,8 @@
+from typing import Any, Dict, Optional
+
 import httpx
 import jwt
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPublicKey
 from fastapi import APIRouter, Depends, Form, HTTPException
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +25,7 @@ GOOGLE_CERTS_URL = "https://www.googleapis.com/oauth2/v3/certs"
 AUTH_SECRET = settings.AUTH_SECRET
 
 
-async def fetch_jwks(jwks_url: str) -> dict:
+async def fetch_jwks(jwks_url: str) -> Any:
     """
     Fetch the JWKS from the given URL.
 
@@ -38,7 +41,9 @@ async def fetch_jwks(jwks_url: str) -> dict:
         return response.json()
 
 
-def get_signing_key(certs: dict, kid: str):
+def get_signing_key(
+    certs: Dict[str, Any], kid: str
+) -> Optional[jwt.algorithms.AllowedRSAKeys]:
     """
     Get the signing key matching the provided kid.
 
@@ -47,7 +52,7 @@ def get_signing_key(certs: dict, kid: str):
         kid (str): Key ID.
 
     Returns:
-        Any: The signing key or None.
+        Any: The rsa signing key or None.
     """
     for jwk in certs.get("keys", []):
         if jwk.get("kid") == kid:
@@ -55,7 +60,9 @@ def get_signing_key(certs: dict, kid: str):
     return None
 
 
-async def verify_token(token: str, jwks_url: str, audience: str, issuer: str) -> dict:
+async def verify_token(
+    token: str, jwks_url: str, audience: str, issuer: str
+) -> Dict[str, Any]:
     """
     Verify a JWT using JWKS.
 
@@ -79,19 +86,28 @@ async def verify_token(token: str, jwks_url: str, audience: str, issuer: str) ->
                 status_code=401, detail="Malformed token: missing 'kid'"
             )
         certs = await fetch_jwks(jwks_url)
+        if not isinstance(certs, Dict):
+            raise HTTPException(status_code=401, detail="Bad certs type from server")
         key = get_signing_key(certs, kid)
         if key is None:
             raise HTTPException(status_code=401, detail="Signing key not found")
-        return jwt.decode(
+        if not isinstance(key, RSAPublicKey):
+            raise HTTPException(
+                status_code=401, detail="Bad key type from cert certs server"
+            )
+        token = jwt.decode(
             token, key=key, audience=audience, issuer=issuer, algorithms=["RS256"]
         )
+        if not isinstance(token, Dict):
+            raise HTTPException(status_code=401, detail="Malformed token")
+        return token
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token expired")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
-async def verify_google_token(token: str) -> dict:
+async def verify_google_token(token: str) -> Dict[str, Any]:
     """
     Verify a Google JWT.
 
@@ -106,7 +122,7 @@ async def verify_google_token(token: str) -> dict:
     )
 
 
-async def verify_apple_token(token: str) -> dict:
+async def verify_apple_token(token: str) -> Dict[str, Any]:
     """
     Verify an Apple JWT.
 
@@ -121,12 +137,12 @@ async def verify_apple_token(token: str) -> dict:
     )
 
 
-def create_auth_response(user_identifier: str, provider: str) -> RedirectResponse:
+def create_auth_response(user_identifier: int, provider: str) -> RedirectResponse:
     """
     Create a redirect response with an auth session cookie.
 
     Args:
-        user_identifier (str): User's unique ID.
+        user_identifier (int): User's unique ID.
         provider (str): "google" or "apple".
 
     Returns:
@@ -150,7 +166,7 @@ def create_auth_response(user_identifier: str, provider: str) -> RedirectRespons
 async def auth_google(
     credential: str = Form(...),
     session: AsyncSession = Depends(get_session),
-):
+) -> RedirectResponse:
     """
     Authenticate a user via Google.
 
@@ -161,16 +177,24 @@ async def auth_google(
     Returns:
         RedirectResponse: Redirect with auth session cookie.
     """
+    # Get token from google
     idinfo = await verify_google_token(credential)
-    google_id = idinfo.get("sub")
-    if not google_id:
-        raise HTTPException(status_code=401, detail="Google ID missing")
+
+    # Extract token fields
+    try:
+        google_id = int(idinfo["sub"])
+        email = idinfo["email"]
+        name = idinfo["name"]
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Malformed token from google")
+
+    # Manage user
     repository = UserRepository(session)
     user = await repository.get_by_google_id(google_id)
     if user is None:
-        email = idinfo.get("email")
-        name = idinfo.get("name")
         user = await repository.create_with_google(google_id, email, name)
+
+    # Create the response
     return create_auth_response(google_id, "google")
 
 
@@ -178,7 +202,7 @@ async def auth_google(
 async def auth_apple(
     id_token: str = Form(...),
     session: AsyncSession = Depends(get_session),
-):
+) -> RedirectResponse:
     """
     Authenticate a user via Apple.
 
@@ -189,21 +213,30 @@ async def auth_apple(
     Returns:
         RedirectResponse: Redirect with auth session cookie.
     """
+
+    # Get token from apple
     idinfo = await verify_apple_token(id_token)
-    apple_id = idinfo.get("sub")
-    if not apple_id:
-        raise HTTPException(status_code=401, detail="Apple ID missing")
+
+    # Extract token fields
+    try:
+        apple_id = int(idinfo["sub"])
+        email = idinfo["email"]
+        name = idinfo.get("name", email)
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Malformed token from apple")
+
+    # Manage user
     repository = UserRepository(session)
     user = await repository.get_by_apple_id(apple_id)
     if user is None:
-        email = idinfo.get("email")
-        name = idinfo.get("name", email)
         user = await repository.create_with_apple(apple_id, email, name)
+
+    # Create the response
     return create_auth_response(apple_id, "apple")
 
 
 @router.get("/logout")
-async def logout():
+async def logout() -> RedirectResponse:
     """
     Logout the user by deleting the auth session cookie.
 

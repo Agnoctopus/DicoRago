@@ -12,7 +12,7 @@ from sqlalchemy import case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload
-from sqlalchemy.sql import func
+from sqlalchemy.sql import functions
 
 from app.models import Example, LearnedWord, Sense, User, Word
 from app.schemas import LearnedWordSchema, VocStatusSchema
@@ -58,7 +58,7 @@ class WordRepository:
         Retrieve Word(s) by the 'written' value.
 
         Args:
-            written (str): The written field value.
+            written (str): Written from.
             senses (bool): If True, eagerly load associated senses.
 
         Returns:
@@ -306,7 +306,8 @@ class VocRepository:
             written (str): Written form of the word.
 
         Returns:
-            Optional[LearnedWord]: Matching LearnedWord record if found; otherwise, None.
+            Optional[LearnedWord]: Matching LearnedWord record if found,
+            otherwise, None.
         """
         stmt = select(LearnedWord).where(
             LearnedWord.user_id == self.user_id, LearnedWord.written == written
@@ -314,28 +315,28 @@ class VocRepository:
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
-    async def get_all(self) -> List[LearnedWord]:
+    async def get_all(self) -> Sequence[LearnedWord]:
         """
         Retrieve all LearnedWord records marked as learned for the user.
 
         Returns:
-            List[LearnedWord]: Learned words.
+            Sequence[LearnedWord]: Learned words.
         """
         stmt = select(LearnedWord).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.learned == True
+            LearnedWord.user_id == self.user_id, LearnedWord.learned
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_since(self, since: datetime) -> List[LearnedWord]:
+    async def get_since(self, since: datetime) -> Sequence[LearnedWord]:
         """
         Retrieve all LearnedWord records updated on or after the specified datetime.
 
         Args:
-            since (datetime): The datetime to start the search from.
+            since (datetime): Datetime to start the search from.
 
         Returns:
-            List[LearnedWord]: LearnedWord records updated since the given datetime.
+            Sequence[LearnedWord]: LearnedWord records updated since the given datetime.
         """
         stmt = select(LearnedWord).where(
             LearnedWord.user_id == self.user_id, LearnedWord.updated_at >= since
@@ -348,7 +349,7 @@ class VocRepository:
         Add a new LearnedWord record to the user's vocabulary.
 
         Args:
-            word (LearnedWordSchema): The data schema containing the learned word details.
+            word (LearnedWordSchema): Data schema containing the learned word details.
 
         Returns:
             LearnedWord: Newly created LearnedWord record.
@@ -363,19 +364,19 @@ class VocRepository:
         await self.session.commit()
         return learned_word
 
-    async def remove_learned(self, word: LearnedWord):
+    async def remove_learned(self, word: LearnedWord) -> None:
         """
         Remove an existing LearnedWord record from the user's vocabulary.
 
         Args:
             word (LearnedWord): LearnedWord record to remove.
         """
-        self.session.delete(word)
+        await self.session.delete(word)
         await self.session.commit()
 
     async def get_last_update_at(self) -> Optional[datetime]:
         """
-        Retrieve the timestamp of the most recent update among the user's LearnedWord records.
+        Retrieve the timestamp of the most recent update among LearnedWord records.
 
         Returns:
             Optional[datetime]: Last update timestamp if available; otherwise, None.
@@ -397,8 +398,8 @@ class VocRepository:
         Returns:
             int: Count of learned words.
         """
-        stmt = select(func.count()).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.learned == True
+        stmt = select(functions.count()).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.learned
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() or 0

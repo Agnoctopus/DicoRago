@@ -192,9 +192,8 @@ class VocStatusSchema(BaseModel):
 
     Attributes:
         learned_count (int): Total number of words learned.
-        last_update (Optional[datetime]): Timestamp of the most recent vocabulary update.
+        last_update (Optional[datetime]): Timestamp of the most recent voc update.
     """
 
     learned_count: int
     last_update: Optional[datetime]
-

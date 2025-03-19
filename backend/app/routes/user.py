@@ -17,7 +17,7 @@ router = APIRouter(prefix="/user", tags=["User"])
 async def get_current_user(
     auth_session: str = Cookie(None),
     session: AsyncSession = Depends(get_session),
-):
+) -> User:
     """
     Retrieve the current user from the session token.
 
@@ -57,7 +57,7 @@ async def get_current_user(
     else:
         raise HTTPException(status_code=401, detail="No user id found in token")
 
-    if not user:
+    if user is None:
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
@@ -66,7 +66,7 @@ async def get_current_user(
 @router.get("/me", response_model=UserInfoSchema)
 async def get_user_info(
     user: User = Depends(get_current_user),
-):
+) -> UserInfoSchema:
     """
     Get current user information.
 
@@ -76,7 +76,7 @@ async def get_user_info(
     Returns:
         UserInfoSchema: Information of the current user.
     """
-    return user
+    return UserInfoSchema.from_orm(user)
 
 
 @router.put("/voc", response_model=Optional[VocStatusSchema])
@@ -84,7 +84,7 @@ async def update_voc(
     voc_req: LearnedWordSchema,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-):
+) -> Optional[VocStatusSchema]:
     """
     Put a vocabulary word.
 
@@ -120,7 +120,7 @@ async def update_voc(
 async def get_voc(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-):
+) -> List[LearnedWordSchema]:
     """
     Retrieve all learned vocabulary words.
 
@@ -136,15 +136,15 @@ async def get_voc(
 
     learned_words = await repository.get_all()
 
-    return learned_words
+    return [LearnedWordSchema.from_orm(word) for word in learned_words]
 
 
 @router.get("/voc/change/{since}", response_model=List[LearnedWordSchema])
-async def get_voc(
+async def get_voc_change(
     since: datetime,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-):
+) -> List[LearnedWordSchema]:
     """
     Retrieve vocabulary words updated since a specified datetime.
 
@@ -161,14 +161,14 @@ async def get_voc(
 
     learned_words = await repository.get_since(since)
 
-    return learned_words
+    return [LearnedWordSchema.from_orm(word) for word in learned_words]
 
 
 @router.get("/voc/status", response_model=Optional[VocStatusSchema])
 async def get_last_voc(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-):
+) -> Optional[VocStatusSchema]:
     """
     Retrieve the vocabulary status.
 
