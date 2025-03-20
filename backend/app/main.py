@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.databases import dict_db, main_db
 from app.routes import analysis, auth, user
+from app.schemas import MobileInfoSchema
 
 # Create FastAPI app
 app = FastAPI(tittle=settings.APP_NAME)
@@ -33,6 +34,16 @@ app.include_router(auth.router, tags=["Auth"])
 app.include_router(user.router, tags=["User"])
 
 
+# Mobile info route
+@app.get("/mobile", response_model=MobileInfoSchema)
+def get_mobile_info():
+    return MobileInfoSchema(
+        min_version_ios=settings.MIN_VERSION_IOS,
+        min_version_android=settings.MIN_VERSION_ANDROID,
+    )
+
+
+# Init databases on startup
 @app.on_event("startup")
 async def startup() -> None:
     """

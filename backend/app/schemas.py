@@ -197,3 +197,16 @@ class VocStatusSchema(BaseModel):
 
     learned_count: int
     last_update: datetime
+
+
+class MobileInfoSchema(BaseModel):
+    """
+    Represents the mobile information
+
+    Attributes:
+        min_version_ios (str): Minimum version to run the app on iOS.
+        min_version_android (str): Minimum version to run the app on Android.
+    """
+
+    min_version_ios: str
+    min_version_android: str

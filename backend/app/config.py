@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     APPLE_CLIENT_ID: str
     AUTH_SECRET: str
 
+    # Mobile min version
+    MIN_VERSION_IOS: str
+    MIN_VERSION_ANDROID: str
+
     class Config:
         """
         Configuration for the Settings class.
