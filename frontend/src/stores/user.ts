@@ -2,11 +2,12 @@ import axios from 'axios'
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { getUser } from '@/api'
+import type { User } from '@/types'
 
 // User store to manage authentication state.
 export const useUserStore = defineStore('user', () => {
   // Reactive state: user data and fetch status.
-  const user = ref<{ name: string } | null>(null)
+  const user = ref<User | null>(null)
   const isFetched = ref(false)
 
   /**
