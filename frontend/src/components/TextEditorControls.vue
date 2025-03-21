@@ -33,7 +33,7 @@ defineEmits(['analyze', 'toggle-settings'])
 </script>
 
 <template>
-  <div class="mt-2 flex items-center justify-between p-2 pl-4 bg-white rounded shadow">
+  <div class="mt-2 flex items-center justify-between p-2 sm:pl-4 bg-white rounded shadow">
     <!-- Left: Toggles for Coloring and Vocabulary -->
     <div class="flex sm:flex-row flex-col items-start gap-2 sm:gap-6">
       <!-- Coloring toggle -->
