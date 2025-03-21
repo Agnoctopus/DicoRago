@@ -5,7 +5,7 @@ Pydantic schemas for requests and responses.
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, validator
 
 
 class MorphSchema(BaseModel):
@@ -51,15 +51,38 @@ class AnalysisSchema(BaseModel):
     vocab: List["WordWithSensesSchema"]
 
 
+LANGUAGES_SUPPORTED = {"en_US", "ko_KR", "fr_FR", "es_ES", "ja_JP"}
+
+
 class AnalyseRequestSchema(BaseModel):
     """
     Schema representing an analysis request.
 
     Attributes:
         text (str): Text to be analyzed.
+        language (str): Language of the dictionary.
     """
 
     text: str
+    language: Optional[str] = Field(default="en_US")
+
+    @validator("language", pre=True, always=True)
+    def check_language(cls, value):
+        if value is None or value not in LANGUAGES_SUPPORTED:
+            return "en_US"
+        return value
+
+
+class MonSchema(BaseModel):
+    obligatoire: str
+    optionnel: Optional[str] = Field(default="valeur_par_defaut")
+    language: Optional[str] = Field(default="en_US")  # Valeur par défaut
+
+    @validator("language", pre=True, always=True)
+    def check_language(cls, value):
+        if value is None or value not in LANGUAGES_SUPPORTED:
+            return "en_US"
+        return value
 
 
 class ExampleSchema(BaseModel):
@@ -88,13 +111,13 @@ class SenseSchema(BaseModel):
 
     Attributes:
         id (int): Unique identifier.
-        english_word (str): English form.
-        english_definition (str): English definition.
+        translation (str): Translation written form.
+        definition (str): Translation definition.
     """
 
     id: int
-    english_word: str
-    english_definition: str
+    translation: str
+    definition: str
 
     class Config:
         """
