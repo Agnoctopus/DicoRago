@@ -60,7 +60,7 @@ const groupedVocab = computed(() => {
       <thead>
         <tr>
           <th class="px-4 py-1 text-left w-25">Word</th>
-          <th class="px-4 py-1 text-left">English Translations</th>
+          <th class="px-4 py-1 text-left">Translations</th>
           <th class="px-4 py-1 w-10"></th>
         </tr>
       </thead>

@@ -44,7 +44,6 @@ async def analyze_text(request: AnalyseRequestSchema) -> AnalysisSchema:
     Returns:
         AnalysisSchema: Analysis result.
     """
-
     # Get text
     text = request.text.strip()
 
@@ -95,9 +94,32 @@ async def analyze_text(request: AnalyseRequestSchema) -> AnalysisSchema:
 
     async with SessionLocal() as session:
         repository = WordRepository(session)
-        words = await repository.get_by_writtens(list(dict.fromkeys(vocs)), senses=True)
+        words = await repository.get_by_writtens(
+            list(dict.fromkeys(vocs)), senses=True, language=request.language
+        )
 
-    return AnalysisSchema(units=units, vocab=words)
+        vocab = []
+        for word in words:
+            senses_schema = []
+
+            for sense in word.senses:
+                if len(sense.translations) == 0:
+                    continue
+                translation = sense.translations[0]
+                sense_schema = SenseSchema(
+                    id=sense.id,
+                    translation=translation.written,
+                    definition=translation.definition,
+                )
+                senses_schema.append(sense_schema)
+            word_schema = WordWithSensesSchema(
+                id=word.id,
+                written=word.written,
+                category=word.category,
+                senses=senses_schema,
+            )
+            vocab.append(word_schema)
+    return AnalysisSchema(units=units, vocab=vocab)
 
 
 @router.get("/senses/{sense_id}/examples", response_model=List[ExampleSchema])

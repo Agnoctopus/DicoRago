@@ -14,14 +14,14 @@ const props = defineProps<{
 }>()
 
 /**
- * Computes a comma-separated string of unique English translations
+ * Computes a comma-separated string of unique translations
  * from all senses of the displayed words.
  */
 const translatedSensesText = computed(() => {
   const translations = new Set<string>()
   props.words.forEach((word) => {
     word.senses.forEach((sense) => {
-      translations.add(sense.english_word)
+      translations.add(sense.translation)
     })
   })
   return Array.from(translations).join(', ')

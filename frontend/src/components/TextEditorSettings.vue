@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineEmits, onMounted } from 'vue'
 import ToggleSwitch from '@/components/ToggleSwitch.vue'
-import { mdiLightbulb } from '@mdi/js'
+import { mdiLightbulb, mdiTranslate } from '@mdi/js'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 
@@ -12,10 +12,16 @@ defineEmits<{ (e: 'close'): void }>()
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
 
-// Computed proxy for "onlyUnknownColoring" from the settings store.
+// Computed property for "onlyUnknownColoring" from the settings store.
 const onlyUnknown = computed({
   get: () => settingsStore.onlyUnknownColoring,
   set: (value: boolean) => settingsStore.setOnlyUnknownColoring(value),
+})
+
+// Computed property for dictionary language. Default is "en_US" (English).
+const dictionaryLanguage = computed({
+  get: () => settingsStore.dictionaryLanguage,
+  set: (value: string) => settingsStore.setDictionaryLanguage(value),
 })
 
 // Interface for Google Credential Response.
@@ -141,6 +147,28 @@ onMounted(async () => {
           </div>
           <ToggleSwitch v-model="onlyUnknown" />
         </div>
+
+        <!-- Dictionary language selector with icon -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <!-- Translate icon -->
+            <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24">
+              <path :d="mdiTranslate" fill="currentColor" />
+            </svg>
+            <span>Dictionary Language</span>
+          </div>
+          <select
+            id="dict-lang"
+            v-model="dictionaryLanguage"
+            class="p-2 border border-gray-300 rounded-md text-center font-semibold"
+          >
+            <option value="en_US">English</option>
+            <option value="ko_KR">한국어</option>
+            <option value="fr_FR">Français</option>
+            <option value="es_ES">Español</option>
+            <option value="ja_JP">日本語</option>
+          </select>
+        </div>
       </div>
 
       <!-- Authentication section -->
@@ -153,7 +181,6 @@ onMounted(async () => {
           >
             <span class="block text-center w-full">{{ userStore.user.name }}</span>
           </button>
-
           <button
             @click="signOut"
             class="w-full relative bg-black border border-black text-white rounded-sm py-2 hover:bg-gray-800"

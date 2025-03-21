@@ -5,10 +5,14 @@ import type { Unit, Analysis } from '@/types'
 import TextEditorSettings from '@/components/TextEditorSettings.vue'
 import TextEditorControls from '@/components/TextEditorControls.vue'
 import TextEditorText from '@/components/TextEditorText.vue'
+import { useSettingsStore } from '@/stores/settings'
 
 // Reference to state for analyzed units.
 const units = ref<Unit[]>([])
 const text = ref('')
+
+// Access settings store.
+const settingsStore = useSettingsStore()
 
 // Controls the display of the settings panel.
 const showSettings = ref(false)
@@ -36,7 +40,7 @@ const analyzeCurrentText = async () => {
     return
   }
   try {
-    const analysis: Analysis = await analyzeText(text.value)
+    const analysis: Analysis = await analyzeText(text.value, settingsStore.dictionaryLanguage)
     units.value = analysis.units
     emit('analysis-complete', analysis)
   } catch (error) {

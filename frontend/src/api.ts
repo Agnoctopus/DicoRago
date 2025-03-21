@@ -15,8 +15,8 @@ export const api = axios.create({
  * @param text - Text to be analyzed.
  * @returns A Promise resolving to an Analysis object.
  */
-export const analyzeText = async (text: string): Promise<Analysis> => {
-  const response = await api.post<Analysis>('/analyze', { text })
+export const analyzeText = async (text: string, language: string): Promise<Analysis> => {
+  const response = await api.post<Analysis>('/analyze', { text, language })
   return response.data
 }
 

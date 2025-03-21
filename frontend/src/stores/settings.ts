@@ -11,6 +11,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const onlyUnknownColoring = ref(false)
   const coloringEnabled = ref(false)
   const vocabularyEnabled = ref(false)
+  const dictionaryLanguage = ref('en_US')
 
   /**
    * Loads settings from localStorage.
@@ -23,6 +24,7 @@ export const useSettingsStore = defineStore('settings', () => {
         onlyUnknownColoring.value = data.onlyUnknownColoring ?? false
         coloringEnabled.value = data.coloringEnabled ?? false
         vocabularyEnabled.value = data.vocabularyEnabled ?? false
+        dictionaryLanguage.value = data.dictionaryLanguage ?? 'en_US'
       } catch (error) {
         console.error('Error loading settings:', error)
       }
@@ -37,12 +39,17 @@ export const useSettingsStore = defineStore('settings', () => {
       onlyUnknownColoring: onlyUnknownColoring.value,
       coloringEnabled: coloringEnabled.value,
       vocabularyEnabled: vocabularyEnabled.value,
+      dictionaryLanguage: dictionaryLanguage.value,
     }
     localStorage.setItem('settings', JSON.stringify(data))
   }
 
   // Auto-save settings on change.
-  watch([onlyUnknownColoring, coloringEnabled, vocabularyEnabled], saveSettings, { deep: true })
+  watch(
+    [onlyUnknownColoring, coloringEnabled, vocabularyEnabled, dictionaryLanguage],
+    saveSettings,
+    { deep: true },
+  )
 
   // Initialize by loading saved settings.
   loadSettings()
@@ -52,6 +59,7 @@ export const useSettingsStore = defineStore('settings', () => {
     onlyUnknownColoring: readonly(onlyUnknownColoring),
     coloringEnabled: readonly(coloringEnabled),
     vocabularyEnabled: readonly(vocabularyEnabled),
+    dictionaryLanguage: readonly(dictionaryLanguage),
     // Setters to update settings.
     setOnlyUnknownColoring(value: boolean) {
       onlyUnknownColoring.value = value
@@ -61,6 +69,9 @@ export const useSettingsStore = defineStore('settings', () => {
     },
     setVocabularyEnabled(value: boolean) {
       vocabularyEnabled.value = value
+    },
+    setDictionaryLanguage(value: string) {
+      dictionaryLanguage.value = value
     },
   }
 })

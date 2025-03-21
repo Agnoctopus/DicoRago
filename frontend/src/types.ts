@@ -48,10 +48,10 @@ export interface Example {
 export interface Sense {
   /** Unique identifier. */
   id: number
-  /** English form. */
-  english_word: string
-  /** English definition. */
-  english_definition: string
+  /** Translation written form. */
+  translation: string
+  /** Translation definition. */
+  definition: string
 }
 
 /**

@@ -54,7 +54,7 @@ watch(
           'font-bold': selectedSense && selectedSense.id === sense.id,
         }"
       >
-        {{ sense.english_word }}
+        {{ sense.translation }}
       </span>
     </div>
     <!-- Display selected sense details -->

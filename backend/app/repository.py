@@ -11,10 +11,10 @@ from typing import List, Optional, Sequence
 from sqlalchemy import case
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, with_loader_criteria
 from sqlalchemy.sql import functions
 
-from app.models import Example, LearnedWord, Sense, User, Word
+from app.models import Example, LearnedWord, Sense, SenseTranslation, User, Word
 from app.schemas import LearnedWordSchema, VocStatusSchema
 
 
@@ -52,30 +52,40 @@ class WordRepository:
         return word
 
     async def get_by_written(
-        self, written: str, senses: bool = False
+        self, written: str, senses: bool = False, language: str = "en_US"
     ) -> Sequence[Word]:
         """
-        Retrieve Word(s) by the 'written' value.
+        Retrieve Word(s) by its written form. Optionally loading associated its senses.
 
         Args:
-            written (str): Written from.
+            written (str): Written form.
             senses (bool): If True, eagerly load associated senses.
+            language (Optional[str]): Language code to for translation.
 
         Returns:
             Sequence[Word]: Matching Word objects.
         """
         stmt = select(Word).where(Word.written == written)
+
         if senses:
-            stmt = stmt.options(selectinload(Word.senses))
+            stmt = stmt.options(
+                selectinload(Word.senses).selectinload(Sense.translations),
+                with_loader_criteria(
+                    SenseTranslation,
+                    lambda translation: translation.language == language,
+                    include_aliases=True,
+                ),
+            )
+
         result = await self.session.execute(stmt)
         words = result.scalars().all()
-
         return words
 
     async def get_by_writtens(
         self,
         writtens: List[str],
         senses: bool = False,
+        language: str = "en_US",
         order: bool = True,
     ) -> Sequence[Word]:
         """
@@ -100,7 +110,14 @@ class WordRepository:
             )
             stmt = stmt.order_by(order_expr)
         if senses:
-            stmt = stmt.options(selectinload(Word.senses))
+            stmt = stmt.options(
+                selectinload(Word.senses).selectinload(Sense.translations),
+                with_loader_criteria(
+                    SenseTranslation,
+                    lambda translation: translation.language == language,
+                    include_aliases=True,
+                ),
+            )
         result = await self.session.execute(stmt)
         words = result.scalars().all()
 

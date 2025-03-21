@@ -45,11 +45,27 @@ class Sense(Base):
     __tablename__ = "senses"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    word_id: Mapped[int] = mapped_column(Integer, ForeignKey("words.id"))
+    word_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("words.id"), nullable=False
+    )
     word: Mapped["Word"] = relationship("Word", back_populates="senses")
-    english_word: Mapped[str] = mapped_column(String, nullable=False)
-    english_definition: Mapped[str] = mapped_column(String, nullable=False)
+    translations: Mapped[List["SenseTranslation"]] = relationship(
+        "SenseTranslation", back_populates="sense", cascade="all, delete-orphan"
+    )
     examples: Mapped[List["Example"]] = relationship("Example", back_populates="sense")
+
+
+class SenseTranslation(Base):
+    __tablename__ = "sense_translations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    sense_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("senses.id"), nullable=False
+    )
+    sense: Mapped["Sense"] = relationship("Sense", back_populates="translations")
+    language: Mapped[str] = mapped_column(String(8), nullable=False)
+    written: Mapped[str] = mapped_column(String, nullable=False)
+    definition: Mapped[str] = mapped_column(String, nullable=False)
 
 
 class Example(Base):
@@ -67,7 +83,9 @@ class Example(Base):
     __tablename__ = "examples"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    sense_id: Mapped[int] = mapped_column(Integer, ForeignKey("senses.id"))
+    sense_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("senses.id"), nullable=False
+    )
     sense: Mapped["Sense"] = relationship("Sense", back_populates="examples")
     category: Mapped[str] = mapped_column(String(16), nullable=False)
     example: Mapped[str] = mapped_column(String, nullable=False)
