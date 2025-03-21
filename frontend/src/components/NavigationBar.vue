@@ -6,7 +6,7 @@ const route = useRoute()
 </script>
 
 <template>
-  <nav class="w-full bg-white shadow p-2">
+  <nav class="w-full bg-white shadow py-2 px-4">
     <div class="max-w-2xl mx-auto flex justify-between items-center">
       <!-- App Title (acts as a link to the home page) -->
       <router-link to="/" class="text-2xl font-bold text-blue-600"> DicoRago </router-link>

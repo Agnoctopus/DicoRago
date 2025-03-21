@@ -50,7 +50,7 @@ onMounted(async () => {
     <NavigationBar />
 
     <!-- Main content area -->
-    <div class="px-4 py-6 flex flex-col items-center">
+    <div class="p-4 flex flex-col items-center">
       <!-- Text editing and analysis area -->
       <TextEditor @word-selected="handleWordSelected" @analysis-complete="handleAnalysisComplete" />
 
