@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import TextEditor from '@/components/TextEditor.vue'
 import UnitDetails from '@/components/UnitDetails.vue'
 import VocabularyList from '@/components/VocabularyList.vue'
+import NavigationBar from '@/components/NavigationBar.vue'
 import { useUserStore } from '@/stores/user'
 import { useVocabStore } from '@/stores/vocabulary'
 
@@ -34,8 +35,9 @@ const handleAnalysisComplete = (analysis: Analysis) => {
 
 // Fetch user data when the component mounts.
 onMounted(async () => {
-  await userStore.fetchUser()
-
+  if (!userStore.isFetched) {
+    await userStore.fetchUser()
+  }
   if (userStore.user) {
     await vocabStore.loadVocabulary()
   }
@@ -43,17 +45,20 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col items-center p-4 bg-gray-50">
-    <!-- App title -->
-    <h1 class="text-4xl font-bold mt-2 mb-8 text-blue-600">DicoRago</h1>
+  <div class="min-h-screen flex flex-col bg-gray-50">
+    <!-- Navigation Bar -->
+    <NavigationBar />
 
-    <!-- Text editing and analysis area -->
-    <TextEditor @word-selected="handleWordSelected" @analysis-complete="handleAnalysisComplete" />
+    <!-- Main content area -->
+    <div class="px-4 py-6 flex flex-col items-center">
+      <!-- Text editing and analysis area -->
+      <TextEditor @word-selected="handleWordSelected" @analysis-complete="handleAnalysisComplete" />
 
-    <!-- Display details of the selected unit -->
-    <UnitDetails v-if="selectedUnit" :unit="selectedUnit" :vocab="vocab" />
+      <!-- Display details of the selected unit -->
+      <UnitDetails v-if="selectedUnit" :unit="selectedUnit" :vocab="vocab" />
 
-    <!-- Show vocabulary list if available -->
-    <VocabularyList v-if="vocab.length" :vocab="vocab" />
+      <!-- Show vocabulary list if available -->
+      <VocabularyList v-if="vocab.length" :vocab="vocab" />
+    </div>
   </div>
 </template>
