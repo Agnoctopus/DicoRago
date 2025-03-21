@@ -174,10 +174,12 @@ class UserInfoSchema(BaseModel):
     Attributes:
         name (str): Username.
         email (str): E-mail.
+        picture (str): Link to avatar picture.
     """
 
     name: str
     email: str
+    picture: Optional[str]
 
     class Config:
         """

@@ -248,7 +248,9 @@ class UserRepository:
 
         return user
 
-    async def create_with_google(self, google_id: str, email: str, name: str) -> User:
+    async def create_with_google(
+        self, google_id: str, email: str, name: str, picture: Optional[str] = None
+    ) -> User:
         """
         Create a user with Google credentials.
 
@@ -256,6 +258,7 @@ class UserRepository:
             google_id (int): Google account identifier.
             email (str): User email address.
             name (str): Desired user name.
+            picture (Optional[str]): Link to avatar picture.
 
         Returns:
             User: Newly created user object.
@@ -266,7 +269,7 @@ class UserRepository:
             name += f"#{randint(1000,9999)}"
 
         # Create user object with Google credentials
-        user = User(google_id=google_id, email=email, name=name)
+        user = User(google_id=google_id, email=email, name=name, picture=picture)
 
         self.session.add(user)
         await self.session.commit()

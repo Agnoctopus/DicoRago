@@ -22,6 +22,7 @@ class User(Base):
         apple_id (Optional[str]): Apple account identifier.
         email (str): Email address.
         name (str): Unique username.
+        picture (Optional[str]): Link to avatar picture.
         learned_words (List[LearnedWord]): Words learned by the user.
     """
 
@@ -39,6 +40,7 @@ class User(Base):
     )
     email: Mapped[str] = mapped_column(String, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True, index=True)
+    picture: Mapped[str] = mapped_column(String, nullable=True)
     learned_words: Mapped[List["LearnedWord"]] = relationship(
         "LearnedWord", back_populates="user"
     )

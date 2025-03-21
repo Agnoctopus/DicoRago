@@ -76,6 +76,8 @@ export interface User {
   name: string
   /** E-mail. */
   email: string
+  /** Link to avatar picture. */
+  picture?: string
 }
 
 /**
