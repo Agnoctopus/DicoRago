@@ -1,5 +1,5 @@
 # Builder
-FROM node:23-alpine as builder
+FROM node:23-alpine AS builder
 MAINTAINER Agno
 
 # Set working directory

@@ -1,5 +1,5 @@
 # Builder
-FROM debian:12.9-slim AS builder
+FROM debian:12.10-slim AS builder
 MAINTAINER Agno
 
 # Update and install required packages
