@@ -21,6 +21,10 @@ const selectedExamples = ref<Example[]>([])
  */
 const selectSense = async (sense: Sense, e: Event) => {
   e.stopPropagation() // Prevent event propagation.
+  if (selectedSense.value == sense) {
+    selectedSense.value = null
+    return
+  }
   selectedSense.value = sense
   try {
     const examples = await getExamples(sense.id)

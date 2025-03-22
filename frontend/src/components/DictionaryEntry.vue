@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, defineEmits } from 'vue'
 import { useDictionaryStore } from '@/stores/dictionary'
 import type { LearnedWord, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
+import { mdiTrashCan } from '@mdi/js'
 
 /**
  * Component props:
@@ -10,11 +11,13 @@ import SenseList from '@/components/SenseList.vue'
  */
 const props = defineProps<{ vocab: LearnedWord }>()
 
+// Define emits to notify parent for removal of a vocabulary word.
+const emit = defineEmits<{ (e: 'remove', written: string): void }>()
+
 // Get the dictionary store instance.
 const dictionaryStore = useDictionaryStore()
 
-// On component mount, if the words for the given written form are not loaded,
-// sync them from the server.
+// On component mount, if the words for the given written form are not loaded, sync them from the server.
 onMounted(async () => {
   if (!dictionaryStore.getWords(props.vocab.written)) {
     await dictionaryStore.syncWritten(props.vocab.written)
@@ -28,6 +31,7 @@ watch(
     if (newVocab && !dictionaryStore.getWords(newVocab.written)) {
       await dictionaryStore.syncWritten(newVocab.written)
     }
+    isExpanded.value = false
   },
 )
 
@@ -69,6 +73,12 @@ const isExpanded = ref(false)
 const toggle = () => {
   isExpanded.value = !isExpanded.value
 }
+
+// Remove function: emits the remove event for this learned word.
+function removeWord(e: Event) {
+  e.stopPropagation()
+  emit('remove', props.vocab.written)
+}
 </script>
 
 <template>
@@ -94,10 +104,30 @@ const toggle = () => {
     </td>
   </tr>
 
-  <!-- Expanded row: shows detailed list of senses when expanded -->
+  <!-- Expanded row: shows the learned date, remove button, and detailed list of senses -->
   <tr v-if="isExpanded">
     <td></td>
     <td colspan="2" class="px-4 py-2 border-t">
+      <div class="flex items-center justify-start mb-2">
+        <!-- Trashcan button to remove the word -->
+        <button @click.stop="removeWord" class="cursor-pointer">
+          <svg class="w-5 h-5 text-red-500" viewBox="0 0 24 24">
+            <path :d="mdiTrashCan" />
+          </svg>
+        </button>
+        <span class="ml-2 text-sm text-gray-600">
+          Learned on:
+          {{
+            new Date(props.vocab.updated_at).toLocaleString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })
+          }}
+        </span>
+      </div>
       <SenseList :senses="aggregatedSenses" />
     </td>
   </tr>

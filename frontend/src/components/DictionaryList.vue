@@ -1,8 +1,17 @@
 <script setup lang="ts">
 import DictionaryEntry from '@/components/DictionaryEntry.vue'
+import { useVocabStore } from '@/stores/vocabulary'
 import type { LearnedWord } from '@/types'
 
+// Receive the learned vocabulary as a prop.
 defineProps<{ learnedVocab: LearnedWord[] }>()
+// Get the vocabulary store instance.
+const vocabStore = useVocabStore()
+
+// Handle the removal of a vocabulary word.
+function handleRemove(written: string) {
+  vocabStore.toggleLearned(written, [])
+}
 </script>
 
 <template>
@@ -16,7 +25,12 @@ defineProps<{ learnedVocab: LearnedWord[] }>()
         </tr>
       </thead>
       <tbody>
-        <DictionaryEntry v-for="(entry, index) in learnedVocab" :key="index" :vocab="entry" />
+        <DictionaryEntry
+          v-for="(entry, index) in learnedVocab"
+          :key="index"
+          :vocab="entry"
+          @remove="handleRemove"
+        />
       </tbody>
     </table>
   </div>
