@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, defineEmits, onMounted } from 'vue'
 import ToggleSwitch from '@/components/ToggleSwitch.vue'
-import { mdiLightbulb, mdiTranslate } from '@mdi/js'
+import { mdiLightbulb, mdiTranslate, mdiTrashCan } from '@mdi/js'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
+import { useVocabStore } from '@/stores/vocabulary'
 
 // Emit 'close' event to close the settings panel.
 defineEmits<{ (e: 'close'): void }>()
 
-// Access settings and user stores.
+// Access settings, user, and vocab stores.
 const settingsStore = useSettingsStore()
 const userStore = useUserStore()
+const vocabStore = useVocabStore()
 
 // Computed property for "onlyUnknownColoring" from the settings store.
 const onlyUnknown = computed({
@@ -90,6 +92,13 @@ function signOut() {
   window.location.href = '/api/auth/logout'
 }
 
+// Function to clear all vocabulary with confirmation.
+function clearVocabulary() {
+  if (confirm('Are you sure you want to delete all vocabulary?')) {
+    vocabStore.clearVocabulary()
+  }
+}
+
 // On component mount, fetch the user and initialize the auth SDKs.
 onMounted(async () => {
   await userStore.fetchUser()
@@ -143,7 +152,7 @@ onMounted(async () => {
             <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24">
               <path :d="mdiLightbulb" fill="currentColor" />
             </svg>
-            <span>Coloring only unknown</span>
+            <span>Coloring Only Unknown</span>
           </div>
           <ToggleSwitch v-model="onlyUnknown" />
         </div>
@@ -168,6 +177,23 @@ onMounted(async () => {
             <option value="es_ES">Español</option>
             <option value="ja_JP">日本語</option>
           </select>
+        </div>
+
+        <!-- Data Management section for vocabulary deletion -->
+        <div class="mt-6">
+          <h4 class="text-lg font-bold mb-2">Data Management</h4>
+          <button
+            @click="clearVocabulary"
+            class="w-full relative bg-white border border-gray-300 rounded-sm py-2 hover:bg-gray-50"
+          >
+            <svg
+              class="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2"
+              viewBox="0 0 24 24"
+            >
+              <path :d="mdiTrashCan" fill="currentColor" />
+            </svg>
+            <span class="block text-center w-full">Delete Vocabulary</span>
+          </button>
         </div>
       </div>
 

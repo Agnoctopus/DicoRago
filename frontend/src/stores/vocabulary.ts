@@ -1,6 +1,6 @@
 import { readonly, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { updateUserVoc, getVocSince, getVoc, getStatusVoc } from '@/api'
+import { updateUserVoc, getVocSince, getVoc, getStatusVoc, clearUserVoc } from '@/api'
 import { useUserStore } from '@/stores/user'
 import type { LearnedWord, VocStatus } from '@/types'
 
@@ -124,6 +124,23 @@ export const useVocabStore = defineStore('learned', () => {
     return learnedVocab.value.some((item) => item.written === vocab)
   }
 
+  /**
+   * Clears the vocabulary list.
+   */
+  async function clearVocabulary() {
+    learnedVocab.value = []
+    if (userStore.user) {
+      try {
+        await clearUserVoc()
+        lastSynced.value = new Date()
+      } catch (error) {
+        console.error('Failed to clear vocabulary on the server:', error)
+      }
+    } else {
+      saveLocal()
+    }
+  }
+
   // Initial load of the vocabulary.
   loadVocabulary()
 
@@ -133,5 +150,6 @@ export const useVocabStore = defineStore('learned', () => {
     toggleLearned,
     isLearned,
     loadVocabulary,
+    clearVocabulary,
   }
 })

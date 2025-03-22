@@ -107,3 +107,12 @@ export const getVoc = async (): Promise<[LearnedWord]> => {
 
   return ret
 }
+
+/**
+ * Clears all vocabulary words for the current user.
+ *
+ * @returns A Promise that resolves when the vocabulary has been cleared.
+ */
+export const clearUserVoc = async (): Promise<void> => {
+  await api.delete('/user/voc')
+}
