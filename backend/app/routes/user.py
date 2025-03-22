@@ -116,6 +116,60 @@ async def update_voc(
     return status
 
 
+@router.put("/voc/batch", response_model=VocStatusSchema)
+async def update_voc(
+    voc_req: List[LearnedWordSchema],
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> VocStatusSchema:
+    """
+    Update multiple vocabulary words at once.
+
+    This endpoint updates the learning status for multiple vocabulary words.
+    It filters the input for unique 'written' values, retrieves the existing learned words,
+    updates those that already exist, and adds new ones for the rest.
+
+    Args:
+        voc_req (List[LearnedWordSchema]): List of vocabulary word details to update.
+        user (User): DB session dependency.
+        session (AsyncSession): Database session dependency.
+
+    Returns:
+        VocStatusSchema: The previous vocabulary status.
+    """
+    repository = VocRepository(session, user.id)
+
+    # Get previous status.
+    status = await repository.get_status()
+
+    # Filter voc_req for unique entries keyed by 'written'.
+    unique_voc = {word.written: word for word in voc_req}.values()
+    writtens = [word.written for word in unique_voc]
+
+    # Retrieve existing learned words for these written forms.
+    existing_learned = await repository.get_by_writtens(writtens)
+    existing_dict = {lw.written: lw for lw in existing_learned}
+
+    new_words = []
+    # Process each unique incoming word.
+    for word in unique_voc:
+        if word.written not in existing_dict:
+            # Word does not exist; mark it for insertion.
+            new_words.append(word)
+        else:
+            # Update existing word.
+            existing = existing_dict[word.written]
+            existing.learned = word.learned
+            existing.updated_at = word.updated_at
+
+    # Add new words in batch if any.
+    if new_words:
+        await repository.add_learned_batch(new_words)
+
+    await session.commit()
+    return status
+
+
 @router.get("/voc", response_model=List[LearnedWordSchema])
 async def get_voc(
     user: User = Depends(get_current_user),

@@ -361,6 +361,30 @@ class VocRepository:
         result = await self.session.execute(stmt)
         return result.scalars().first()
 
+    async def get_by_writtens(
+        self,
+        writtens: List[str],
+    ) -> Sequence[LearnedWord]:
+        """
+        Retrieve LearnedWord records by many writtens form.
+
+        Args:
+            writtens (List[str]): Written forms of the words.
+
+        Returns:
+            Sequence[LearnedWord]: Matching LearnedWord records if found
+        """
+        if len(writtens) == 0:
+            return []
+
+        stmt = select(LearnedWord).where(
+            LearnedWord.user_id == self.user_id, LearnedWord.written.in_(writtens)
+        )
+        result = await self.session.execute(stmt)
+        words = result.scalars().all()
+
+        return words
+
     async def get_all(self) -> Sequence[LearnedWord]:
         """
         Retrieve all LearnedWord records marked as learned for the user.
@@ -407,6 +431,27 @@ class VocRepository:
             user_id=self.user_id,
         )
         self.session.add(learned_word)
+        await self.session.commit()
+        return learned_word
+
+    async def add_learned_batch(self, words: List[LearnedWordSchema]) -> LearnedWord:
+        """
+        Add a new LearnedWord record to the user's vocabulary.
+
+        Args:
+            word (List[LearnedWordSchema]): Data schema containing the learned words details.
+
+        Returns:
+            LearnedWord: Newly created LearnedWord record.
+        """
+        for word in words:
+            learned_word = LearnedWord(
+                written=word.written,
+                learned=word.learned,
+                updated_at=word.updated_at,
+                user_id=self.user_id,
+            )
+            self.session.add(learned_word)
         await self.session.commit()
         return learned_word
 

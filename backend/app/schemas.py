@@ -159,6 +159,7 @@ class WordWithSensesSchema(WordSchema):
 
     senses: List[SenseSchema]
 
+
 class UserInfoSchema(BaseModel):
     """
     Schema representing a user.

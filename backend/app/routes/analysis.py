@@ -33,6 +33,7 @@ from app.schemas import (
 # Create API root router
 router = APIRouter(prefix="", tags=["Analysis"])
 
+
 def convert_word_to_schema(word: Word) -> WordWithSensesSchema:
     """
     Converts a single Word object into a WordWithSensesSchema object.
@@ -53,9 +54,11 @@ def convert_word_to_schema(word: Word) -> WordWithSensesSchema:
                 translation=sense.translations[0].written,
                 definition=sense.translations[0].definition,
             )
-            for sense in word.senses if sense.translations
+            for sense in word.senses
+            if sense.translations
         ],
     )
+
 
 def convert_words_to_schema(words: List[Word]) -> List[WordWithSensesSchema]:
     """
@@ -69,6 +72,7 @@ def convert_words_to_schema(words: List[Word]) -> List[WordWithSensesSchema]:
         List[WordWithSensesSchema]: A list of converted WordWithSensesSchema objects.
     """
     return [convert_word_to_schema(word) for word in words]
+
 
 @router.post("/analyze", response_model=AnalysisSchema)
 async def analyze_text(request: AnalyseRequestSchema) -> AnalysisSchema:
