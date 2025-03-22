@@ -1,0 +1,63 @@
+.editor-box {
+  word-spacing: 0.5em;
+  line-height: 1.8em;
+  text-align: justify;
+  text-justify: inter-character;
+  white-space: collapse;
+}
+
+.editor-box::selection {
+  background: #a0c0d0;
+}
+
+.word-box {
+  display: inline;
+  box-shadow: 0 0 0 1px gray;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 0.1rem;
+  cursor: pointer;
+  outline: 2px solid black;
+  outline-offset: 3px;
+  animation: borderFadeIn 0.5s;
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+@keyframes borderFadeIn {
+  from {
+    box-shadow: 0 0 0 1px transparent;
+    outline: 2px solid transparent;
+  }
+  to {
+    box-shadow: 0 0 0 1px gray;
+    outline: 2px solid black;
+  }
+}
+
+.word-box:hover {
+  background-color: #d0e0f0;
+  box-shadow: 0 0 0 4px #50a0d0;
+}
+
+.word-box::selection {
+  background: #70b0f0;
+}
+
+.word-box.selected {
+  background-color: #ffd54f;
+  box-shadow: 0 0 0 4px #ffa726;
+}
+
+.word-box.known {
+  background-color: #c0ffc0;
+}
+
+.word-box.unknown {
+  background-color: #ffc0c0;
+}
+
+.word-box.undefined {
+  background-color: #e8e8e8;
+}

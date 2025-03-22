@@ -1,0 +1,48 @@
+.editor-zen {
+  word-spacing: 0em;
+  line-height: 1.6em;
+  text-align: justify;
+  text-justify: inter-character;
+  white-space: collapse;
+}
+
+.editor-zen::selection {
+  background: #a0c0d0;
+}
+
+.word-zen {
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 0.15rem;
+  cursor: pointer;
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.word-zen:hover {
+  background-color: #d0e0f0;
+  box-shadow: 0 0 0 3px #50a0d0;
+}
+
+.word-zen::selection {
+  background: #70b0f0;
+}
+
+.word-zen.selected {
+  background-color: #ffd54f;
+  box-shadow: 0 0 0 3px #ffa726;
+}
+
+.word-zen.known {
+  background-color: #c0ffc0;
+}
+
+.word-zen.unknown {
+  background-color: #ffc0c0;
+}
+
+.word-zen.undefined {
+  background-color: #e8e8e8;
+}

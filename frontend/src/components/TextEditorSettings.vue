@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineEmits, onMounted } from 'vue'
 import ToggleSwitch from '@/components/ToggleSwitch.vue'
-import { mdiLightbulb, mdiTranslate, mdiTrashCan } from '@mdi/js'
+import { mdiLightbulb, mdiTranslate, mdiTrashCan, mdiPencil } from '@mdi/js'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'
 import { useVocabStore } from '@/stores/vocabulary'
@@ -24,6 +24,12 @@ const onlyUnknown = computed({
 const dictionaryLanguage = computed({
   get: () => settingsStore.dictionaryLanguage,
   set: (value: string) => settingsStore.setDictionaryLanguage(value),
+})
+
+// Computed property for annotation style. Default is "word-box".
+const annotationStyle = computed({
+  get: () => settingsStore.annotationStyle || 'box',
+  set: (value: string) => settingsStore.setAnnotationStyle(value),
 })
 
 // Interface for Google Credential Response.
@@ -169,13 +175,33 @@ onMounted(async () => {
           <select
             id="dict-lang"
             v-model="dictionaryLanguage"
-            class="p-2 border border-gray-300 rounded-md text-center font-semibold"
+            class="p-2 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
           >
             <option value="en_US">English</option>
             <option value="ko_KR">한국어</option>
             <option value="fr_FR">Français</option>
             <option value="es_ES">Español</option>
             <option value="ja_JP">日本語</option>
+          </select>
+        </div>
+
+        <!-- Annotation Style selector with icon -->
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <!-- Pencil icon -->
+            <svg class="w-6 h-6 mr-2" viewBox="0 0 24 24">
+              <path :d="mdiPencil" fill="currentColor" />
+            </svg>
+            <span>Annotation Style</span>
+          </div>
+          <select
+            id="annotation-style"
+            v-model="annotationStyle"
+            class="p-2 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
+          >
+            <option value="box">Box</option>
+            <option value="underline">Underline</option>
+            <option value="zen">Zen</option>
           </select>
         </div>
 

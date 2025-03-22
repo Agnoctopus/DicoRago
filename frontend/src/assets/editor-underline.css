@@ -1,0 +1,63 @@
+.editor-underline {
+  word-spacing: 0em;
+  line-height: 1.75em;
+  text-align: justify;
+  text-justify: inter-character;
+  white-space: collapse;
+}
+
+.editor-underline::selection {
+  background: #a0c0d0;
+}
+
+.word-underline {
+  display: inline;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  border-radius: 0.15rem;
+  cursor: pointer;
+  padding-bottom: 5px;
+
+  transition:
+    background-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.word-underline:hover {
+  background-color: #d0e0f0;
+
+  box-shadow: 0 0 0 3px #50a0d0;
+}
+
+.word-underline::selection {
+  background: #70b0f0;
+}
+
+.word-underline.selected {
+  background-color: #ffd54f;
+  border-radius: 0.1rem;
+  padding-bottom: 5px;
+
+  box-shadow: 0 0 0 3px #ffa726;
+}
+
+.word-underline.known {
+  text-decoration-line: underline;
+  text-decoration-color: #68c868;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}
+
+.word-underline.unknown {
+  text-decoration-line: underline;
+  text-decoration-color: #ff7070;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}
+
+.word-underline.undefined {
+  text-decoration-line: underline;
+  text-decoration-color: #989898;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 2px;
+}

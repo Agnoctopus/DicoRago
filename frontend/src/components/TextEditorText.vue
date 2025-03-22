@@ -28,7 +28,7 @@ const isTextTooLong = computed(() => textLength.value > props.maxLength)
 // Use the settings store for the "only unknown" toggle.
 const settingsStore = useSettingsStore()
 
-// Toggle states for coloring and vocabulary filtering.
+// Toggle states for coloring, vocabulary filtering and word style.
 const coloringEnabled = computed({
   get: () => settingsStore.coloringEnabled,
   set: (value: boolean) => settingsStore.setColoringEnabled(value),
@@ -37,6 +37,12 @@ const onlyUnknownColoring = computed({
   get: () => settingsStore.onlyUnknownColoring,
   set: (value: boolean) => settingsStore.setOnlyUnknownColoring(value),
 })
+const annotationStyle = computed({
+  get: () => settingsStore.annotationStyle,
+  set: (value: string) => settingsStore.setAnnotationStyle(value),
+})
+const wordStyle = computed(() => `word-${annotationStyle.value}`)
+const editorStyle = computed(() => `editor-${annotationStyle.value}`)
 
 // Updated toward parent
 const updateText = () => {
@@ -81,7 +87,8 @@ function annotateText(original: string, units: Unit[]): string {
         extraClass = ' undefined'
       }
     }
-    result += `<span data-index="${i}" class="word${extraClass}">${unit.word}</span>`
+
+    result += `<span data-index="${i}" class="${wordStyle.value}${extraClass}">${unit.word}</span>`
     startIndex = pos + unit.word.length
   })
   result += original.slice(startIndex)
@@ -95,7 +102,7 @@ function updateColorize() {
   if (!editor.value) {
     return
   }
-  const wordElements = editor.value.querySelectorAll('.word')
+  const wordElements = editor.value.querySelectorAll(`.${wordStyle.value}`)
   wordElements.forEach((wordElement) => {
     const indexStr = wordElement.getAttribute('data-index')
     if (!indexStr) {
@@ -154,8 +161,8 @@ onMounted(() => {
  */
 const handleClick = (event: MouseEvent) => {
   const target = event.target as HTMLElement
-  if (target && target.classList.contains('word')) {
-    const currentlySelected = editor.value?.querySelector('.word.selected')
+  if (target && target.classList.contains(wordStyle.value)) {
+    const currentlySelected = editor.value?.querySelector(`.${wordStyle.value}.selected`)
     if (currentlySelected && currentlySelected !== target) {
       currentlySelected.classList.remove('selected')
     }
@@ -193,10 +200,10 @@ onMounted(() => {
 })
 
 watch(() => props.units, renderAnnotatedText)
-
-// Watch toggles and learned vocabulary to update word coloring.
 watch(coloringEnabled, updateColorize)
 watch(onlyUnknownColoring, updateColorize)
+watch(() => annotationStyle.value, renderAnnotatedText)
+
 watch(
   () => vocabStore.learnedVocab,
   () => {
@@ -215,7 +222,8 @@ watch(
       ref="editor"
       :contenteditable="isEditable"
       :class="[
-        'editor w-full max-w-2xl p-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 text-xl overflow-y-auto',
+        editorStyle,
+        'w-full max-w-2xl p-4 bg-white border border-gray-300 rounded shadow-sm focus:outline-none focus:ring-2 text-xl overflow-y-auto',
         isTextTooLong
           ? 'ring-2 focus:ring-3 ring-red-400 focus:ring-red-400'
           : 'focus:ring-blue-400',
@@ -240,68 +248,4 @@ watch(
   </div>
 </template>
 
-<style>
-.word {
-  display: inline;
-  box-shadow: 0 0 0 1px gray;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  border-radius: 0.1rem;
-  cursor: pointer;
-  outline: 2px solid black;
-  outline-offset: 3px;
-  animation: borderFadeIn 0.5s;
-  transition:
-    background-color 0.25s ease,
-    box-shadow 0.25s ease;
-}
-
-@keyframes borderFadeIn {
-  from {
-    box-shadow: 0 0 0 1px transparent;
-    outline: 2px solid transparent;
-  }
-  to {
-    box-shadow: 0 0 0 1px gray;
-    outline: 2px solid black;
-  }
-}
-
-.word:hover {
-  background-color: #d0e0f0;
-  box-shadow: 0 0 0 4px #50a0d0;
-}
-
-.word::selection {
-  background: #70b0f0;
-}
-
-.word.selected {
-  background-color: #ffd54f;
-  box-shadow: 0 0 0 4px #ffa726;
-}
-
-.word.known {
-  background-color: #c0ffc0;
-}
-
-.word.unknown {
-  background-color: #ffc0c0;
-}
-
-.word.undefined {
-  background-color: #e8e8e8;
-}
-
-.editor {
-  word-spacing: 0.5em;
-  line-height: 1.8em;
-  text-align: justify;
-  text-justify: inter-character;
-  white-space: collapse;
-}
-
-.editor::selection {
-  background: #a0c0d0;
-}
-</style>
+<style src="@/assets/editor.css"></style>

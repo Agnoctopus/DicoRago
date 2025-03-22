@@ -12,6 +12,7 @@ export const useSettingsStore = defineStore('settings', () => {
   const coloringEnabled = ref(false)
   const vocabularyEnabled = ref(false)
   const dictionaryLanguage = ref('en_US')
+  const annotationStyle = ref('box')
 
   /**
    * Loads settings from localStorage.
@@ -25,6 +26,7 @@ export const useSettingsStore = defineStore('settings', () => {
         coloringEnabled.value = data.coloringEnabled ?? false
         vocabularyEnabled.value = data.vocabularyEnabled ?? false
         dictionaryLanguage.value = data.dictionaryLanguage ?? 'en_US'
+        annotationStyle.value = data.annotationStyle ?? 'box'
       } catch (error) {
         console.error('Error loading settings:', error)
       }
@@ -40,6 +42,7 @@ export const useSettingsStore = defineStore('settings', () => {
       coloringEnabled: coloringEnabled.value,
       vocabularyEnabled: vocabularyEnabled.value,
       dictionaryLanguage: dictionaryLanguage.value,
+      annotationStyle: annotationStyle.value,
     }
     localStorage.setItem('settings', JSON.stringify(data))
   }
@@ -60,6 +63,7 @@ export const useSettingsStore = defineStore('settings', () => {
     coloringEnabled: readonly(coloringEnabled),
     vocabularyEnabled: readonly(vocabularyEnabled),
     dictionaryLanguage: readonly(dictionaryLanguage),
+    annotationStyle: readonly(annotationStyle),
     // Setters to update settings.
     setOnlyUnknownColoring(value: boolean) {
       onlyUnknownColoring.value = value
@@ -72,6 +76,9 @@ export const useSettingsStore = defineStore('settings', () => {
     },
     setDictionaryLanguage(value: string) {
       dictionaryLanguage.value = value
+    },
+    setAnnotationStyle(value: string) {
+      annotationStyle.value = value
     },
   }
 })
