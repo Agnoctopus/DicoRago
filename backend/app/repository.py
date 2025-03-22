@@ -32,20 +32,31 @@ class WordRepository:
         """
         self.session = session
 
-    async def get_by_id(self, word_id: int, senses: bool = False) -> Optional[Word]:
+    async def get_by_id(
+        self, word_id: int, senses: bool = False, language: str = "en_US"
+    ) -> Optional[Word]:
         """
         Retrieve a Word by id.
 
         Args:
             id (int): Word identifier.
             senses (bool): If True, eagerly load associated senses.
+            language (str): Language code to for translation.
 
         Returns:
             Optional[Word]: Matching Word object.
         """
         stmt = select(Word).where(Word.id == word_id)
         if senses:
-            stmt = stmt.options(selectinload(Word.senses))
+            stmt = stmt.options(
+                selectinload(Word.senses).selectinload(Sense.translations),
+                with_loader_criteria(
+                    SenseTranslation,
+                    lambda translation: translation.language == language,
+                    include_aliases=True,
+                ),
+            )
+
         result = await self.session.execute(stmt)
         word = result.scalars().first()
 
@@ -60,7 +71,7 @@ class WordRepository:
         Args:
             written (str): Written form.
             senses (bool): If True, eagerly load associated senses.
-            language (Optional[str]): Language code to for translation.
+            language (str): Language code to for translation.
 
         Returns:
             Sequence[Word]: Matching Word objects.
@@ -95,6 +106,7 @@ class WordRepository:
             writtens (List[str]): All written values.
             senses (bool): If True, eagerly load associated senses.
             order (bool): If True, order results to match the writtens list.
+            language (str): Language code to for translation.
 
         Returns:
             Sequence[Word]: Matching Word objects.
@@ -138,17 +150,31 @@ class SenseRepository:
         """
         self.session = session
 
-    async def get_by_word_id(self, word_id: int) -> Sequence[Sense]:
+    async def get_by_word_id(
+        self, word_id: int, language: Optional[str] = "en_US"
+    ) -> Sequence[Sense]:
         """
         Retrieve Sense(s) by a Word id.
 
         Args:
             word_id (int): Identifier of the Word.
+            language (Optional[str]): Language code to for translation.
 
         Returns:
             Sequence[Sense]: Associated Sense objects.
         """
         stmt = select(Sense).where(Sense.word_id == word_id)
+        if language is None:
+            stmt = stmt.options(selectinload(Sense.translations))
+        else:
+            stmt = stmt.options(
+                selectinload(Sense.translations),
+                with_loader_criteria(
+                    SenseTranslation,
+                    lambda translation: translation.language == language,
+                    include_aliases=True,
+                ),
+            )
         result = await self.session.execute(stmt)
         senses = result.scalars().all()
 

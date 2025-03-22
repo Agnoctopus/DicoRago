@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.analyse import get_vocabulary
 from app.databases.dict_db import SessionLocal, get_session
+from app.models import Word
 from app.repository import ExampleRepository, SenseRepository, WordRepository
 from app.schemas import (
     AnalyseRequestSchema,
@@ -32,6 +33,42 @@ from app.schemas import (
 # Create API root router
 router = APIRouter(prefix="", tags=["Analysis"])
 
+def convert_word_to_schema(word: Word) -> WordWithSensesSchema:
+    """
+    Converts a single Word object into a WordWithSensesSchema object.
+
+    Args:
+        word (Word): The Word object to convert.
+
+    Returns:
+        WordWithSensesSchema: The converted WordWithSensesSchema object.
+    """
+    return WordWithSensesSchema(
+        id=word.id,
+        written=word.written,
+        category=word.category,
+        senses=[
+            SenseSchema(
+                id=sense.id,
+                translation=sense.translations[0].written,
+                definition=sense.translations[0].definition,
+            )
+            for sense in word.senses if sense.translations
+        ],
+    )
+
+def convert_words_to_schema(words: List[Word]) -> List[WordWithSensesSchema]:
+    """
+    Converts a list of Word objects into a list of WordWithSensesSchema objects,
+    using the convert_word_to_schema helper function.
+
+    Args:
+        words (List[Word]): A list of Word objects to convert.
+
+    Returns:
+        List[WordWithSensesSchema]: A list of converted WordWithSensesSchema objects.
+    """
+    return [convert_word_to_schema(word) for word in words]
 
 @router.post("/analyze", response_model=AnalysisSchema)
 async def analyze_text(request: AnalyseRequestSchema) -> AnalysisSchema:
@@ -98,27 +135,7 @@ async def analyze_text(request: AnalyseRequestSchema) -> AnalysisSchema:
             list(dict.fromkeys(vocs)), senses=True, language=request.language
         )
 
-        vocab = []
-        for word in words:
-            senses_schema = []
-
-            for sense in word.senses:
-                if len(sense.translations) == 0:
-                    continue
-                translation = sense.translations[0]
-                sense_schema = SenseSchema(
-                    id=sense.id,
-                    translation=translation.written,
-                    definition=translation.definition,
-                )
-                senses_schema.append(sense_schema)
-            word_schema = WordWithSensesSchema(
-                id=word.id,
-                written=word.written,
-                category=word.category,
-                senses=senses_schema,
-            )
-            vocab.append(word_schema)
+        vocab = convert_words_to_schema(words)
     return AnalysisSchema(units=units, vocab=vocab)
 
 
@@ -143,7 +160,7 @@ async def get_sense_examples(
 
 @router.get("/words/{word_id}/senses", response_model=List[SenseSchema])
 async def get_word_senses(
-    word_id: int, session: AsyncSession = Depends(get_session)
+    word_id: int, language: str = "en_US", session: AsyncSession = Depends(get_session)
 ) -> List[SenseSchema]:
     """
     Retrieve senses for a given word.
@@ -151,12 +168,13 @@ async def get_word_senses(
     Args:
         word_id (int): Word unique identifier.
         session (AsyncSession): Database session dependency.
+        language (str): Language code to for translation.
 
     Returns:
         List[SenseSchema]: Associated senses.
     """
     repository = SenseRepository(session)
-    senses = await repository.get_by_word_id(word_id)
+    senses = await repository.get_by_word_id(word_id, language=language)
     return [SenseSchema.from_orm(sense) for sense in senses]
 
 
@@ -180,31 +198,31 @@ async def get_word(
     repository = WordRepository(session)
     word = await repository.get_by_id(word_id, senses=senses)
     if senses:
-        return WordWithSensesSchema.from_orm(word)
+        return convert_word_to_schema(word)
     return WordSchema.from_orm(word)
 
 
 @router.get(
-    "/written/{written}/words", response_model=List[WordSchema | WordWithSensesSchema]
+    "/written/{written}/words",
+    response_model=List[Union[WordSchema, WordWithSensesSchema]],
 )
 async def get_words(
     written: str, senses: bool = False, session: AsyncSession = Depends(get_session)
-) -> List[WordSchema | WordWithSensesSchema]:
+) -> List[Union[WordSchema, WordWithSensesSchema]]:
     """
-    Retrieve words by their written form, optionally including their
-    associated senses.
+    Retrieve words by their written form, optionally including their associated senses.
 
     Args:
         written (str): Word written form.
-        senses (bool): If True, include sense.
+        senses (bool): If True, include associated senses.
         session (AsyncSession): Database session dependency.
 
     Returns:
-        List[WordSchema | WordWithSensesSchema]: Corresponding words optionally
-        with associated senses.
+        List[Union[WordSchema, WordWithSensesSchema]]: Corresponding words,
+        optionally with associated senses.
     """
     repository = WordRepository(session)
     words = await repository.get_by_written(written, senses=senses)
     if senses:
-        return [WordWithSensesSchema.from_orm(word) for word in words]
+        return convert_words_to_schema(words)
     return [WordSchema.from_orm(word) for word in words]

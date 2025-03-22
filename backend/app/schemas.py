@@ -159,14 +159,6 @@ class WordWithSensesSchema(WordSchema):
 
     senses: List[SenseSchema]
 
-    class Config:
-        """
-        Configuration for the WordWithSensesSchema class.
-        """
-
-        from_attributes = True
-
-
 class UserInfoSchema(BaseModel):
     """
     Schema representing a user.

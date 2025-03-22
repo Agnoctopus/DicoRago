@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Analysis, Example, User, VocStatus, LearnedWord } from '@/types'
+import type { Analysis, Example, User, VocStatus, ServerLearnedWord, Word } from '@/types'
 
 /** Base URL for the REST API */
 export const restAPIBaseURL = 'http://localhost:8000'
@@ -27,6 +27,24 @@ export const analyzeText = async (text: string, language: string): Promise<Analy
  */
 export const getExamples = async (sense_id: number): Promise<Example[]> => {
   const response = await api.get<Example[]>(`/senses/${sense_id}/examples`)
+  return response.data
+}
+
+/**
+ * Fetches words by their written form from the server.
+ * Optionally includes associated senses.
+ *
+ * @param written - The written form to search for.
+ * @param senses - Whether to include the associated senses (default: true).
+ * @returns A Promise that resolves to an array of Word objects.
+ */
+export const getWordsFromWritten = async (
+  written: string,
+  senses: boolean = true,
+): Promise<Word[]> => {
+  const response = await api.get<Word[]>(`/written/${written}/words`, {
+    params: { senses },
+  })
   return response.data
 }
 
@@ -68,8 +86,8 @@ export const updateUserVoc = async (
  * @param since - Starting date for retrieving.
  * @returns A Promise resolving to an array of LearnedWord objects.
  */
-export const getVocSince = async (since: Date): Promise<[LearnedWord]> => {
-  const response = await api.get<[LearnedWord]>(`/user/voc/change/${since.toISOString()}`)
+export const getVocSince = async (since: Date): Promise<ServerLearnedWord[]> => {
+  const response = await api.get<ServerLearnedWord[]>(`/user/voc/change/${since.toISOString()}`)
   const ret = response.data
 
   ret.forEach((word) => {
@@ -97,8 +115,8 @@ export const getStatusVoc = async (): Promise<VocStatus> => {
  *
  * @returns A Promise resolving to an array of LearnedWord objects.
  */
-export const getVoc = async (): Promise<[LearnedWord]> => {
-  const response = await api.get<[LearnedWord]>(`/user/voc`)
+export const getVoc = async (): Promise<ServerLearnedWord[]> => {
+  const response = await api.get<ServerLearnedWord[]>(`/user/voc`)
   const ret = response.data
 
   ret.forEach((word) => {
