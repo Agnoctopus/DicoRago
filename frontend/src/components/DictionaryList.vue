@@ -25,12 +25,19 @@ function handleRemove(written: string) {
         </tr>
       </thead>
       <tbody>
-        <DictionaryEntry
-          v-for="(entry, index) in learnedVocab"
-          :key="index"
-          :vocab="entry"
-          @remove="handleRemove"
-        />
+        <template v-if="learnedVocab.length > 0">
+          <DictionaryEntry
+            v-for="(entry, index) in learnedVocab"
+            :key="index"
+            :vocab="entry"
+            @remove="handleRemove"
+          />
+        </template>
+        <tr v-else>
+          <td colspan="3" class="px-4 py-2 text-center text-gray-600">
+            No learned vocabulary yet.
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
