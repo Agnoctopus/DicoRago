@@ -17,8 +17,11 @@ RUN npm run build
 FROM nginx:1.27-alpine
 MAINTAINER Agno
 
-# Copy worker build web app directory
+# Copy built web app directory
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy custom Nginx configuration
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80 for HTTP
 EXPOSE 80
