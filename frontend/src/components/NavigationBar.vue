@@ -11,7 +11,7 @@ const route = useRoute()
       <!-- App Title (acts as a link to the home page) -->
       <router-link to="/" class="text-2xl font-bold text-blue-600"> DicoRago </router-link>
       <!-- Navigation Links -->
-      <div class="flex space-x-6">
+      <div class="flex space-x-4">
         <router-link
           to="/"
           class="text-lg hover:text-blue-600"
