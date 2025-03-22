@@ -69,7 +69,7 @@ defineEmits(['analyze', 'toggle-settings'])
                  so the placeholder’s space is never lost -->
             <div v-show="!!user" class="absolute inset-0">
               <template v-if="user && user.picture">
-                <img :src="user.picture" alt="User Avatar" class="w-8 h-8 rounded-full" />
+                <img :src="user.picture" alt="" class="w-8 h-8 rounded-full" />
               </template>
               <template v-else-if="user">
                 <div
