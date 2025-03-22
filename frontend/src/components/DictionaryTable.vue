@@ -4,12 +4,10 @@ import DictionaryList from '@/components/DictionaryList.vue'
 import DictionaryExportImport from '@/components/DictionaryExportImport.vue'
 
 import { useVocabStore } from '@/stores/vocabulary'
-import type { LearnedWord } from '@/types'
 import { mdiChevronLeft, mdiChevronRight, mdiExportVariant } from '@mdi/js'
 
 // Get the vocabulary store instance and cast learnedVocab.
 const vocabStore = useVocabStore()
-const learnedVocab = vocabStore.learnedVocab as LearnedWord[]
 
 // State for search text and sort order.
 const searchText = ref('')
@@ -21,7 +19,7 @@ const currentPage = ref(1)
 
 // Computed property that filters and sorts the learned vocabulary.
 const filteredLearnedVocab = computed(() => {
-  const filtered = learnedVocab.filter((word) =>
+  const filtered = vocabStore.learnedVocab.filter((word) =>
     word.written.toLowerCase().includes(searchText.value.toLowerCase()),
   )
 
