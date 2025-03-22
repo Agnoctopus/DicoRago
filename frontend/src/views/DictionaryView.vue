@@ -13,9 +13,9 @@ const userStore = useUserStore()
 onMounted(async () => {
   if (!userStore.isFetched) {
     await userStore.fetchUser()
-  }
-  if (userStore.user) {
-    await vocabStore.loadVocabulary()
+    if (userStore.user) {
+      await vocabStore.loadVocabulary()
+    }
   }
 })
 </script>
