@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import DictionaryList from '@/components/DictionaryList.vue'
+import DictionaryExportImport from '@/components/DictionaryExportImport.vue'
+
 import { useVocabStore } from '@/stores/vocabulary'
 import type { LearnedWord } from '@/types'
-import { mdiChevronLeft, mdiChevronRight } from '@mdi/js'
+import { mdiChevronLeft, mdiChevronRight, mdiExportVariant } from '@mdi/js'
 
 // Get the vocabulary store instance and cast learnedVocab.
 const vocabStore = useVocabStore()
@@ -14,7 +16,7 @@ const searchText = ref('')
 const sortOrder = ref<'alphabetical' | 'date'>('date')
 
 // Pagination settings.
-const pageSize = 2
+const pageSize = 20
 const currentPage = ref(1)
 
 // Computed property that filters and sorts the learned vocabulary.
@@ -44,6 +46,9 @@ const paginatedLearnedVocab = computed(() => {
 watch([searchText, sortOrder], () => {
   currentPage.value = 1
 })
+
+// State for showing modal overlay for export/import vocabulary.
+const showExportImport = ref(false)
 </script>
 
 <template>
@@ -54,8 +59,17 @@ watch([searchText, sortOrder], () => {
         v-model="searchText"
         type="text"
         placeholder="Search words..."
-        class="border border-gray-800 p-2 rounded w-full mr-2 h-10"
+        class="border border-gray-800 p-2 rounded w-full h-10"
       />
+      <!-- Export/Import Button -->
+      <button
+        @click="showExportImport = true"
+        class="flex items-center justify-center px-2 mx-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
+      >
+        <svg class="w-6 h-6" viewBox="0 0 24 24">
+          <path :d="mdiExportVariant" fill="currentColor" />
+        </svg>
+      </button>
       <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
         <option value="date">By Date</option>
         <option value="alphabetical">Alphabetical</option>
@@ -87,5 +101,8 @@ watch([searchText, sortOrder], () => {
         </svg>
       </button>
     </div>
+
+    <!-- Modal Overlay for Export/Import Vocabulary -->
+    <DictionaryExportImport v-if="showExportImport" @close="showExportImport = false" />
   </div>
 </template>

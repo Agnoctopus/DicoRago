@@ -31,7 +31,6 @@ export const learnedWordSchema = z.object({
     }
     return arg
   }, z.date()),
-  words: z.array(wordSchema),
 })
 
 // Schéma pour valider un tableau de LearnedWord

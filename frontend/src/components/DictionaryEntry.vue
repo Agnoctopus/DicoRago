@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useDictionaryStore } from '@/stores/dictionary'
 import type { LearnedWord, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
@@ -20,6 +20,16 @@ onMounted(async () => {
     await dictionaryStore.syncWritten(props.vocab.written)
   }
 })
+
+// Watch for changes in props.vocab; if its words are not loaded, sync from the server.
+watch(
+  () => props.vocab,
+  async (newVocab) => {
+    if (newVocab && !dictionaryStore.getWords(newVocab.written)) {
+      await dictionaryStore.syncWritten(newVocab.written)
+    }
+  },
+)
 
 /**
  * Computed property to get the associated Word objects from the dictionary store
