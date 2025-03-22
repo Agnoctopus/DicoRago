@@ -91,7 +91,7 @@ const learned = computed({
   },
   set(value: boolean) {
     if (props.unit.vocabulary && value !== learnedStore.isLearned(props.unit.vocabulary)) {
-      learnedStore.toggleLearned(props.unit.vocabulary)
+      learnedStore.toggleLearned(props.unit.vocabulary, matchingWords.value)
     }
   },
 })
