@@ -3,5 +3,5 @@
 alembic==1.15.1
 lxml==5.3.1
 mypy==1.15.0
-pylint==3.3.4
+pylint==3.3.6
 SQLAlchemy[mypy]==2.0.37

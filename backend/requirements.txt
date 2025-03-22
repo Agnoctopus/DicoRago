@@ -1,9 +1,9 @@
 aiosqlite==0.21.0
 cryptography==44.0.2
-fastapi==0.115.8
+fastapi==0.115.11
 httpx==0.28.1
 pydantic==2.10.6
-pydantic-settings==2.7.1
+pydantic-settings==2.8.1
 PyJWT==2.10.1
 python-multipart==0.0.20
 SQLAlchemy[asyncio]==2.0.37
