@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import List
 
 import jwt
-from fastapi import APIRouter, Cookie, Depends, HTTPException
+from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
@@ -185,3 +185,25 @@ async def get_last_voc(
     status = await repository.get_status()
 
     return status
+
+
+@router.delete("/voc", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_vocabulary(
+    user: User = Depends(get_current_user),
+    session: AsyncSession = Depends(get_session),
+) -> None:
+    """
+    Deletes all learned vocabulary words for the authenticated user.
+
+    Args:
+        user (User): Authenticated user.
+        session (AsyncSession): DB session dependency.
+
+    Returns:
+        None: Responds with HTTP 204 No Content upon success.
+    """
+    repository = VocRepository(session, user.id)
+
+    await repository.clear_all()
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

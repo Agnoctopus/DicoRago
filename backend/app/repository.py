@@ -8,7 +8,7 @@ from datetime import datetime
 from random import randint
 from typing import List, Optional, Sequence
 
-from sqlalchemy import case
+from sqlalchemy import case, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, with_loader_criteria
@@ -437,3 +437,10 @@ class VocRepository:
         else:
             last_update_at = datetime.fromtimestamp(0)
         return VocStatusSchema(learned_count=learned_count, last_update=last_update_at)
+
+    async def clear_all(self) -> None:
+        """
+        Delete all learned vocabulary words for the user.
+        """
+        stmt = delete(LearnedWord).where(LearnedWord.user_id == self.user_id)
+        await self.session.execute(stmt)
