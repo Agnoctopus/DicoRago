@@ -185,6 +185,7 @@ async def auth_google(
         google_id = idinfo["sub"]
         email = idinfo["email"]
         name = idinfo["name"]
+        picture = idinfo.get("picture", None)
     except Exception as e:
         raise HTTPException(status_code=401, detail="Malformed token from google")
 
@@ -192,11 +193,10 @@ async def auth_google(
     repository = UserRepository(session)
     user = await repository.get_by_google_id(google_id)
     if user is None:
-        user = await repository.create_with_google(google_id, email, name)
+        user = await repository.create_with_google(google_id, email, name, picture)
 
     # Create the response
     return create_auth_response(google_id, "google")
-
 
 @router.post("/apple")
 async def auth_apple(
@@ -233,7 +233,6 @@ async def auth_apple(
 
     # Create the response
     return create_auth_response(apple_id, "apple")
-
 
 @router.get("/logout")
 async def logout() -> RedirectResponse:
