@@ -81,6 +81,32 @@ export const updateUserVoc = async (
 }
 
 /**
+ * Updates the learning status for multiple vocabulary words for the current user.
+ *
+ * @param updates - An array of objects, each containing:
+ *    - written: the word's written form,
+ *    - learned: the new learning status (true if learned, false otherwise),
+ *    - updated_at: the timestamp of the update.
+ * @returns A Promise resolving to the previous VocStatus object.
+ */
+export const updateUserVocs = async (
+  updates: { written: string; learned: boolean; updated_at: Date }[],
+): Promise<VocStatus> => {
+  // Convert each update's timestamp to an ISO string.
+  const payload = updates.map(({ written, learned, updated_at }) => ({
+    written,
+    learned,
+    updated_at: updated_at.toISOString(),
+  }))
+
+  // Upload the batch of updates.
+  const response = await api.put<VocStatus>(`/user/voc/batch`, payload)
+  const ret = response.data
+  ret.last_update = new Date(`${ret.last_update}Z`)
+  return ret
+}
+
+/**
  * Retrieves vocabulary words that have been updated since a given date.
  *
  * @param since - Starting date for retrieving.

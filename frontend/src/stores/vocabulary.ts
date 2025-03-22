@@ -1,9 +1,15 @@
 import { readonly, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { updateUserVoc, getVocSince, getVoc, getStatusVoc, clearUserVoc } from '@/api'
+import {
+  updateUserVocs,
+  updateUserVoc,
+  getVocSince,
+  getVoc,
+  getStatusVoc,
+  clearUserVoc,
+} from '@/api'
 import { useUserStore } from '@/stores/user'
 import { useDictionaryStore } from '@/stores/dictionary'
-
 import type { ServerLearnedWord, LearnedWord, VocStatus, Word } from '@/types'
 import { learnedWordArraySchema } from '@/schemas'
 
@@ -133,6 +139,52 @@ export const useVocabStore = defineStore('learned', () => {
   }
 
   /**
+   * Imports vocabulary from an array of written words.
+   * Filters the provided list to retain unique writtens, then adds them
+   * to the learned vocabulary if they do not already exist.
+   * Finally, calls updateUserVocs with the newly imported words.
+   *
+   * @param writtens - An array of written word strings.
+   */
+  async function importVocab(writtens: string[]) {
+    // Filter for unique written values.
+    const uniqueWrittens = Array.from(new Set(writtens))
+    // Filter out those that already exist in the learned vocabulary.
+    const newWrittens = uniqueWrittens.filter(
+      (written) => !learnedVocab.value.some((word) => word.written === written),
+    )
+    if (newWrittens.length === 0) {
+      return
+    }
+    const now = new Date()
+    // Create new LearnedWord objects.
+    const newWords = newWrittens.map((written) => ({
+      written,
+      updated_at: now,
+    }))
+    // Append new words to the learned vocabulary.
+    learnedVocab.value.push(...newWords)
+
+    // Update the server with the new vocabulary.
+    if (userStore.user) {
+      try {
+        await updateUserVocs(
+          newWords.map((word) => ({
+            written: word.written,
+            learned: true,
+            updated_at: word.updated_at,
+          })),
+        )
+      } catch (error) {
+        console.error('Error updating vocabulary on the server:', error)
+      }
+    } else {
+      // Persist the changes locally.
+      saveLocal()
+    }
+  }
+
+  /**
    * Checks if a vocabulary word is learned.
    *
    * @param vocab - The vocabulary word to check.
@@ -166,6 +218,7 @@ export const useVocabStore = defineStore('learned', () => {
     learnedVocab: readonly(learnedVocab),
     lastSynced: readonly(lastSynced),
     toggleLearned,
+    importVocab,
     isLearned,
     loadVocabulary,
     clearVocabulary,
