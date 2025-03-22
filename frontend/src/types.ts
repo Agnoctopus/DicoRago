@@ -91,9 +91,19 @@ export interface VocStatus {
 }
 
 /**
- * Represents a learned word.
+ * Represents a local learned word.
  */
 export interface LearnedWord {
+  /** Written form. */
+  written: string
+  /** Timestamp of the last update. */
+  updated_at: Date
+}
+
+/**
+ * Represents a learned word from server.
+ */
+export interface ServerLearnedWord {
   /** Written form. */
   written: string
   /** Whether the word is learned. */

@@ -2,13 +2,28 @@ import { readonly, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { updateUserVoc, getVocSince, getVoc, getStatusVoc, clearUserVoc } from '@/api'
 import { useUserStore } from '@/stores/user'
-import type { LearnedWord, VocStatus } from '@/types'
+import { useDictionaryStore } from '@/stores/dictionary'
+
+import type { ServerLearnedWord, LearnedWord, VocStatus, Word } from '@/types'
+import { learnedWordArraySchema } from '@/schemas'
+
+export function convertServerLearnedWord(serverWord: ServerLearnedWord): LearnedWord {
+  return {
+    written: serverWord.written,
+    updated_at: serverWord.updated_at,
+  }
+}
+
+export function convertServerLearnedWords(serverWords: ServerLearnedWord[]): LearnedWord[] {
+  return serverWords.map(convertServerLearnedWord)
+}
 
 export const useVocabStore = defineStore('learned', () => {
   // Reactive array holding the learned vocabulary words.
   const learnedVocab = ref<LearnedWord[]>([])
-  // Access the user store to check if the user is logged in.
+  // Access the user and dictionary store
   const userStore = useUserStore()
+  const dictionaryStore = useDictionaryStore()
 
   // In offline mode, lastSynced is kept in memory (initialized to epoch).
   const lastSynced = ref<Date>(new Date(0))
@@ -20,7 +35,9 @@ export const useVocabStore = defineStore('learned', () => {
     const stored = localStorage.getItem('learnedVocabulary')
     if (stored) {
       try {
-        learnedVocab.value = JSON.parse(stored)
+        const parsedData = JSON.parse(stored)
+        const validatedData = learnedWordArraySchema.parse(parsedData)
+        learnedVocab.value = validatedData
       } catch (error) {
         learnedVocab.value = []
         console.error('Error loading learned vocabulary from localStorage:', error)
@@ -43,7 +60,7 @@ export const useVocabStore = defineStore('learned', () => {
   async function loadVocabulary() {
     if (userStore.user) {
       try {
-        const words: LearnedWord[] = await getVoc()
+        const words: LearnedWord[] = convertServerLearnedWords(await getVoc())
         learnedVocab.value = words
         const status = await getStatusVoc()
         lastSynced.value = status.last_update
@@ -62,14 +79,15 @@ export const useVocabStore = defineStore('learned', () => {
    *
    * @param vocab - The vocabulary word to toggle.
    */
-  async function toggleLearned(vocab: string) {
+  async function toggleLearned(vocab: string, words: Word[]) {
     const updated_at = new Date()
     const previousLastSynced = lastSynced.value
 
     // Check if the word already exists; if it does, remove it (mark as not learned), otherwise add it.
     const index = learnedVocab.value.findIndex((item) => item.written === vocab)
     if (index === -1) {
-      learnedVocab.value.push({ written: vocab, learned: true, updated_at })
+      learnedVocab.value.push({ written: vocab, updated_at })
+      dictionaryStore.addWritten(vocab, words)
     } else {
       learnedVocab.value.splice(index, 1)
     }
@@ -81,7 +99,7 @@ export const useVocabStore = defineStore('learned', () => {
         const status: VocStatus = await updateUserVoc(vocab, newStatus, updated_at)
         // If the server's last update timestamp differs from our previous sync, fetch recent changes.
         if (status.last_update.getTime() !== previousLastSynced.getTime()) {
-          const words: LearnedWord[] = await getVocSince(previousLastSynced)
+          const words: ServerLearnedWord[] = await getVocSince(previousLastSynced)
           words.forEach((serverWord) => {
             const idx = learnedVocab.value.findIndex(
               (localWord) => localWord.written === serverWord.written,
@@ -98,7 +116,7 @@ export const useVocabStore = defineStore('learned', () => {
             } else {
               // If the word is not in the local list and is learned on the server, add it.
               if (serverWord.learned) {
-                learnedVocab.value.push(serverWord)
+                learnedVocab.value.push(convertServerLearnedWord(serverWord))
               }
             }
           })
