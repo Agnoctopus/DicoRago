@@ -184,7 +184,10 @@ async def get_word_senses(
 
 @router.get("/words/{word_id}", response_model=Union[WordSchema | WordWithSensesSchema])
 async def get_word(
-    word_id: int, senses: bool = False, session: AsyncSession = Depends(get_session)
+    word_id: int,
+    senses: bool = False,
+    language: str = "en_US",
+    session: AsyncSession = Depends(get_session),
 ) -> Union[WordSchema | WordWithSensesSchema]:
     """
     Retrieve a word by its unique identifier, optionally including its
@@ -193,6 +196,7 @@ async def get_word(
     Args:
         word_id (int): Word unique identifier.
         senses (bool): If True, include senses.
+        language (str): Language code to for translation.
         session (AsyncSession): Database session dependency.
 
     Returns:
@@ -200,7 +204,7 @@ async def get_word(
         with associated senses.
     """
     repository = WordRepository(session)
-    word = await repository.get_by_id(word_id, senses=senses)
+    word = await repository.get_by_id(word_id, senses=senses, language=language)
     if senses:
         return convert_word_to_schema(word)
     return WordSchema.from_orm(word)
@@ -211,7 +215,10 @@ async def get_word(
     response_model=List[Union[WordSchema, WordWithSensesSchema]],
 )
 async def get_words(
-    written: str, senses: bool = False, session: AsyncSession = Depends(get_session)
+    written: str,
+    senses: bool = False,
+    language: str = "en_US",
+    session: AsyncSession = Depends(get_session),
 ) -> List[Union[WordSchema, WordWithSensesSchema]]:
     """
     Retrieve words by their written form, optionally including their associated senses.
@@ -219,6 +226,7 @@ async def get_words(
     Args:
         written (str): Word written form.
         senses (bool): If True, include associated senses.
+        language (str): Language code to for translation.
         session (AsyncSession): Database session dependency.
 
     Returns:
@@ -226,7 +234,7 @@ async def get_words(
         optionally with associated senses.
     """
     repository = WordRepository(session)
-    words = await repository.get_by_written(written, senses=senses)
+    words = await repository.get_by_written(written, senses=senses, language=language)
     if senses:
         return convert_words_to_schema(words)
     return [WordSchema.from_orm(word) for word in words]
