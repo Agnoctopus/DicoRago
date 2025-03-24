@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, defineEmits } from 'vue'
 import { useDictionaryStore } from '@/stores/dictionary'
+import { useSettingsStore } from '@/stores/settings'
 import type { LearnedWord, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
 import { mdiTrashCan } from '@mdi/js'
@@ -14,13 +15,14 @@ const props = defineProps<{ vocab: LearnedWord }>()
 // Define emits to notify parent for removal of a vocabulary word.
 const emit = defineEmits<{ (e: 'remove', written: string): void }>()
 
-// Get the dictionary store instance.
+// Get the dictionary and settings store instance.
 const dictionaryStore = useDictionaryStore()
+const settingsStore = useSettingsStore()
 
 // On component mount, if the words for the given written form are not loaded, sync them from the server.
 onMounted(async () => {
-  if (!dictionaryStore.getWords(props.vocab.written)) {
-    await dictionaryStore.syncWritten(props.vocab.written)
+  if (!dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage)) {
+    await dictionaryStore.syncWritten(props.vocab.written, settingsStore.dictionaryLanguage)
   }
 })
 
@@ -28,8 +30,8 @@ onMounted(async () => {
 watch(
   () => props.vocab,
   async (newVocab) => {
-    if (newVocab && !dictionaryStore.getWords(newVocab.written)) {
-      await dictionaryStore.syncWritten(newVocab.written)
+    if (newVocab && !dictionaryStore.getWords(newVocab.written, settingsStore.dictionaryLanguage)) {
+      await dictionaryStore.syncWritten(newVocab.written, settingsStore.dictionaryLanguage)
     }
     isExpanded.value = false
   },
@@ -40,7 +42,8 @@ watch(
  * that match the learned word's written form. If none are found, returns an empty array.
  */
 const associatedWords = computed<Word[]>(() => {
-  return dictionaryStore.getWords(props.vocab.written) || []
+  console.log(settingsStore.dictionaryLanguage);
+  return dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage) || []
 })
 
 /**

@@ -10,6 +10,7 @@ import {
 } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { useDictionaryStore } from '@/stores/dictionary'
+import { useSettingsStore } from '@/stores/settings'
 import type { ServerLearnedWord, LearnedWord, VocStatus, Word } from '@/types'
 import { learnedWordArraySchema } from '@/schemas'
 
@@ -27,9 +28,10 @@ export function convertServerLearnedWords(serverWords: ServerLearnedWord[]): Lea
 export const useVocabStore = defineStore('learned', () => {
   // Reactive array holding the learned vocabulary words.
   const learnedVocab = ref<LearnedWord[]>([])
-  // Access the user and dictionary store
+  // Access the user, dictionary and settings store
   const userStore = useUserStore()
   const dictionaryStore = useDictionaryStore()
+  const settingsStore = useSettingsStore()
 
   // In offline mode, lastSynced is kept in memory (initialized to epoch).
   const lastSynced = ref<Date>(new Date(0))
@@ -93,7 +95,7 @@ export const useVocabStore = defineStore('learned', () => {
     const index = learnedVocab.value.findIndex((item) => item.written === vocab)
     if (index === -1) {
       learnedVocab.value.push({ written: vocab, updated_at })
-      dictionaryStore.addWritten(vocab, words)
+      dictionaryStore.addWritten(vocab, settingsStore.dictionaryLanguage, words)
     } else {
       learnedVocab.value.splice(index, 1)
     }

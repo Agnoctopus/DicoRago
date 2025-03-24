@@ -151,7 +151,7 @@ onMounted(async () => {
       <hr class="border-t border-gray-300 mb-4" />
 
       <!-- Option: Toggle for coloring only unknown words -->
-      <div class="space-y-4">
+      <div class="space-y-2">
         <div class="flex items-center justify-between">
           <div class="flex items-center">
             <!-- Lightbulb icon -->
@@ -160,7 +160,7 @@ onMounted(async () => {
             </svg>
             <span>Coloring Only Unknown</span>
           </div>
-          <ToggleSwitch v-model="onlyUnknown" />
+          <ToggleSwitch v-model="onlyUnknown"/>
         </div>
 
         <!-- Dictionary language selector with icon -->
@@ -175,7 +175,7 @@ onMounted(async () => {
           <select
             id="dict-lang"
             v-model="dictionaryLanguage"
-            class="p-2 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
+            class="p-1 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
           >
             <option value="en_US">English</option>
             <option value="ko_KR">한국어</option>
@@ -197,7 +197,7 @@ onMounted(async () => {
           <select
             id="annotation-style"
             v-model="annotationStyle"
-            class="p-2 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
+            class="p-1 w-1/3 border border-gray-300 rounded-md text-center font-semibold"
           >
             <option value="box">Box</option>
             <option value="underline">Underline</option>

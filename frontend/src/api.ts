@@ -13,6 +13,7 @@ export const api = axios.create({
 /**
  * Analyzes the provided text.
  * @param text - Text to be analyzed.
+ * @param language - Language to fetch for vocabulary.
  * @returns A Promise resolving to an Analysis object.
  */
 export const analyzeText = async (text: string, language: string): Promise<Analysis> => {
@@ -36,14 +37,16 @@ export const getExamples = async (sense_id: number): Promise<Example[]> => {
  *
  * @param written - The written form to search for.
  * @param senses - Whether to include the associated senses (default: true).
+ * @param language - Language to use for sense translations.
  * @returns A Promise that resolves to an array of Word objects.
  */
 export const getWordsFromWritten = async (
   written: string,
   senses: boolean = true,
+  language: string = "en_US"
 ): Promise<Word[]> => {
   const response = await api.get<Word[]>(`/written/${written}/words`, {
-    params: { senses },
+    params: { senses, language },
   })
   return response.data
 }
