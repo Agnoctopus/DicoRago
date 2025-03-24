@@ -80,10 +80,7 @@ export const useDictionaryStore = defineStore('dictionary', () => {
    * @returns An array of Word objects if found, otherwise undefined.
    */
   function getWords(written: string, language: string): Word[] | undefined {
-    console.log(written, language)
-    const ret = dictionary.value[written] ? dictionary.value[written][language] : undefined
-    console.log(ret)
-    return ret;
+    return dictionary.value[written] ? dictionary.value[written][language] : undefined
   }
 
   /**
