@@ -49,7 +49,7 @@ export const useSettingsStore = defineStore('settings', () => {
 
   // Auto-save settings on change.
   watch(
-    [onlyUnknownColoring, coloringEnabled, vocabularyEnabled, dictionaryLanguage],
+    [onlyUnknownColoring, coloringEnabled, vocabularyEnabled, dictionaryLanguage, annotationStyle],
     saveSettings,
     { deep: true },
   )
