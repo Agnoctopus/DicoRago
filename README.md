@@ -7,8 +7,8 @@ DicoRago is a web application designed to help you analyze and understand Korean
 **Try it now at [dicorago.com](https://dicorago.com/)**!
 
 <p  align="center">
-  <a href="https://github.com/user-attachments/assets/6051ee06-c47e-4e72-93bd-99ad1931452d">
-    <img src="https://github.com/user-attachments/assets/0b83f6b6-1371-404b-b89b-e3390c63227b" alt="animated" />
+  <a href="https://github.com/user-attachments/assets/97d315b0-fc41-4fb1-b2c2-3d53cb75e07c">
+    <img src="https://github.com/user-attachments/assets/096e55f9-dec6-4bc5-be9b-18e0c8eafae6" alt="animated" />
   </a>  
 </p>
 
