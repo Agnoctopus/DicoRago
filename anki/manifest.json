@@ -1,0 +1,9 @@
+{
+    "name": "Dicorago Sync",
+    "mod": 0,
+    "package": "dicorago_sync",
+    "description": "Syncs the user's Dicorago vocabulary with Anki.",
+    "author": "César Belley",
+    "version": "0.0",
+    "min_point_version": "24.0"
+}
