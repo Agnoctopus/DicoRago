@@ -56,7 +56,7 @@ This will:
 2. Start the backend at [http://localhost:8000](http://localhost:8000).
 3. Start the frontend at [http://localhost:8080](http://localhost:8080).
 
-Go to [http://localhost:8080](http://localhost:8080) and Enjoy your personalized Korean learning journey with DicoRago! 🎉
+Go to [http://localhost:8080](http://localhost:8080) and Enjoy your personalized Korean learning journey with DicoRago!
 
 ## Contributions
 
