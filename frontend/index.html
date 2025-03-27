@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="">
+<html lang="en">
   <head>
     <!-- Set character encoding, favicon link and viewport -->
     <meta charset="UTF-8" />
@@ -8,6 +8,31 @@
 
     <!-- Page title -->
     <title>DicoRago</title>
+
+    <!-- Meta description for SEO -->
+    <meta name="description" content="DicoRago is an interactive tool to learn Korean by analyzing texts. Explore vocabulary, grammar, and track your learning progress." />
+
+    <!-- Structured data (JSON-LD) for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "DicoRago",
+      "url": "https://dicorago.com",
+      "applicationCategory": "EducationApplication",
+      "operatingSystem": "All",
+      "description": "DicoRago is an interactive tool to learn Korean by analyzing texts. Explore vocabulary, grammar, and track your learning progress.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "creator": {
+        "@type": "Organization",
+        "name": "DicoRago"
+      }
+    }
+    </script>
 
     <!-- Include Google authentication service SDK -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
