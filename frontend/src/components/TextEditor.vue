@@ -5,6 +5,7 @@ import type { Unit, Analysis } from '@/types'
 import TextEditorSettings from '@/components/TextEditorSettings.vue'
 import TextEditorControls from '@/components/TextEditorControls.vue'
 import TextEditorText from '@/components/TextEditorText.vue'
+
 import { useSettingsStore } from '@/stores/settings'
 
 // Reference to state for analyzed units.

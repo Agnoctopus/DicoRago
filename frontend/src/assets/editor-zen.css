@@ -46,3 +46,7 @@
 .word-zen.undefined {
   background-color: #e8e8e8;
 }
+
+.word-zen.seen {
+  background-color: #ffe0b0;
+}
