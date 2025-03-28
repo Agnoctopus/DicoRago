@@ -95,13 +95,13 @@ def get_vocabulary(word: KhaiiiWord) -> Optional[str]:
         # IC: Interjection: 네
         vocab = morph.lex
     # Nouns
-    elif morph.tag in ("NNG", "NNB", "NP"):
+    elif morph.tag in ("NNG", "NNB", "NP", "NNP"):
         # NNG: Common noun: 사과
         # NNB: Dependent noun: 것
         # NP: Pronoun: 그
-        vocab = morph.lex
-    elif morph.tag in ("NNP", "NR"):
         # NNP: Proper noun: 서울
+        vocab = morph.lex
+    elif morph.tag in ("NR"):
         # NR: Numeral: 하나
         vocab = None
     # Adverbs and Determiners
