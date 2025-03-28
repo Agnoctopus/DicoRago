@@ -74,7 +74,7 @@ Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
       surface: 'Dicorago',
       morphs: [{ lex: 'Dicorago', tag: 'SL' }],
       word: 'Dicorago',
-      vocabulary: null,
+      vocabulary: undefined,
     },
     { surface: '앱', morphs: [{ lex: '앱', tag: 'NNG' }], word: '앱', vocabulary: '앱' },
     {
