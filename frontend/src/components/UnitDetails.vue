@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { Unit, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
 import { useVocabStore } from '@/stores/vocabulary'
+import { tagMeanings } from '@/data/tag'
 
 /**
  * Props:
@@ -16,56 +17,6 @@ const props = defineProps<{
 
 // Access the learned vocabulary store.
 const learnedStore = useVocabStore()
-
-// Dictionary mapping morphological tags to their meanings.
-const tagMeanings: Record<string, string> = {
-  EC: 'Connecting ending',
-  EF: 'Final ending',
-  EP: 'Pre-final ending',
-  ETM: 'Modifier ending',
-  ETN: 'Nominal ending',
-  IC: 'Interjection',
-  JC: 'Conjunctive particle',
-  JKB: 'Adverbial case marker',
-  JKC: 'Complement case marker',
-  JKG: 'Genitive case marker',
-  JKO: 'Objective case marker',
-  JKQ: 'Quotative particle',
-  JKS: 'Subject case marker',
-  JKV: 'Vocative particle',
-  JX: 'Auxiliary particle',
-  MAG: 'General adverb',
-  MAJ: 'Conjunctive adverb',
-  MM: 'Determiner',
-  NNB: 'Dependent noun',
-  NNG: 'Common noun',
-  NNP: 'Proper noun',
-  NP: 'Pronoun',
-  NR: 'Numeral',
-  SE: 'Sentence-final ending symbol',
-  SF: 'Punctuation (period)',
-  SH: 'Chinese character',
-  SL: 'Foreign language',
-  SN: 'Number',
-  SO: 'Other symbol',
-  SP: 'Punctuation (comma)',
-  SS: 'Punctuation (quotation)',
-  SW: 'Unknown word',
-  SWK: 'Korean slang word',
-  VA: 'Adjective verb',
-  VCN: 'Negative copula verb',
-  VCP: 'Positive copula verb',
-  VV: 'Action verb',
-  VX: 'Auxiliary verb',
-  XPN: 'Noun prefix',
-  XR: 'Verb prefix',
-  XSA: 'Adjective suffix',
-  XSN: 'Noun suffix',
-  XSV: 'Verb suffix',
-  ZN: 'Unknown numeral',
-  ZV: 'Unknown verb',
-  ZZ: 'Unknown',
-}
 
 // Returns words matching the unit's vocabulary property.
 const matchingWords = computed(() => {
