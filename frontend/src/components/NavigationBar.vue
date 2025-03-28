@@ -13,9 +13,9 @@ const route = useRoute()
       <!-- Navigation Links -->
       <div class="flex space-x-4">
         <router-link
-          to="/"
+          to="/analyze"
           class="text-lg hover:text-blue-600"
-          :class="route.path === '/' ? 'underline underline-offset-4' : ''"
+          :class="route.path === '/analyze' ? 'underline underline-offset-4' : ''"
           exact
         >
           Analyze
