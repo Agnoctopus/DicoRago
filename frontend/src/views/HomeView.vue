@@ -16,7 +16,6 @@ import HomeFooter from '@/components/home/HomeFooter.vue'
       <HeroSection />
       <Features />
     </main>
-
     <HomeFooter />
   </div>
 </template>

@@ -1,13 +1,10 @@
 export const sampleData = {
   text: `
-저는 요즘 한국어를 열심히 공부하고 있어요!
-Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
-어려운 단어들도 보기 쉽게 정리되어 있고,
-한눈에 들어오고, 이해하기 쉬워요.
-매일 조금씩 실력이 느는 게 느껴져요!!
-한국어 공부가 놀이처럼 바뀐 것 같아요!
+안녕하세요?
+저는 요즘 한국어를 열심히 공부하고 있어요! Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~~ 어려운 단어들도 보기 쉽게 정리되어 있고, 한눈에 들어오고, 이해하기 쉬워요. 매일 조금씩 실력이 느는 게 느껴져요!! 공부가 놀이처럼 바뀐 것 같아요!
   `,
   learnedVocab: [
+    '안녕',
     '요즘',
     '공부',
     '저',
@@ -25,6 +22,18 @@ Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
     '같다',
   ],
   units: [
+    {
+      surface: '안녕하시어요?',
+      morphs: [
+        { lex: '안녕', tag: 'NNG' },
+        { lex: '하', tag: 'XSA' },
+        { lex: '시', tag: 'EP' },
+        { lex: '어요', tag: 'EF' },
+        { lex: '?', tag: 'SF' },
+      ],
+      word: '안녕하세요?',
+      vocabulary: '안녕',
+    },
     {
       surface: '저는',
       morphs: [
@@ -106,7 +115,7 @@ Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
         { lex: '어요', tag: 'EC' },
         { lex: '~', tag: 'SO' },
       ],
-      word: '즐거워졌어요~',
+      word: '즐거워졌어요~~',
       vocabulary: '즐겁다',
     },
     {
@@ -255,12 +264,6 @@ Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
       vocabulary: '느끼다',
     },
     {
-      surface: '한국어',
-      morphs: [{ lex: '한국어', tag: 'NNP' }],
-      word: '한국어',
-      vocabulary: '한국어',
-    },
-    {
       surface: '공부가',
       morphs: [
         { lex: '공부', tag: 'NNG' },
@@ -300,6 +303,31 @@ Dicorago 앱 덕분에 공부가 훨씬 즐거워졌어요~
     },
   ],
   vocab: [
+    {
+      id: 28283,
+      written: '안녕',
+      category: 'noun',
+      senses: [
+        {
+          id: 39249,
+          translation: 'peace; good health',
+          definition: 'The state of being comfortable with no worry nor problem.',
+        },
+      ],
+    },
+    {
+      id: 28284,
+      written: '안녕',
+      category: 'Interjection',
+      senses: [
+        {
+          id: 39250,
+          translation: 'hello; hi; good-bye; bye',
+          definition:
+            'A salutation uttered when the speaker meets or parts from his/her friend or junior.',
+        },
+      ],
+    },
     {
       id: 36487,
       written: '저',
