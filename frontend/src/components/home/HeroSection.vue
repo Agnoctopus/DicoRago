@@ -81,7 +81,7 @@ const handleWordSelected = async (unit: Unit | null) => {
         </div>
 
         <!-- Colonne de démo (60% sur desktop) -->
-        <div class="lg:w-3/5 lg:pr-6 lg:pl-12 py-4 flex items-center justify-center">
+        <div class="lg:w-3/5 lg:pr-6 lg:pl-12 lg:mt-0 mt-4 flex items-center justify-center">
           <DemoAnalyzedText
             :units="units"
             :text="text"
