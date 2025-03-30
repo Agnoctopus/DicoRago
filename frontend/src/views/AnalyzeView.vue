@@ -47,10 +47,12 @@ onMounted(async () => {
 <template>
   <div class="min-h-screen flex flex-col bg-gray-50">
     <!-- Navigation Bar -->
-    <NavigationBar />
+    <header>
+      <NavigationBar />
+    </header>
 
     <!-- Main content area -->
-    <div class="p-4 flex flex-col items-center">
+    <main class="p-4 flex-grow flex flex-col items-center">
       <!-- Text editing and analysis area -->
       <TextEditor @word-selected="handleWordSelected" @analysis-complete="handleAnalysisComplete" />
 
@@ -59,6 +61,6 @@ onMounted(async () => {
 
       <!-- Show vocabulary list if available -->
       <VocabularyList v-if="vocab.length" :vocab="vocab" />
-    </div>
+    </main>
   </div>
 </template>
