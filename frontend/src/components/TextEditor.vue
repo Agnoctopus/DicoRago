@@ -66,7 +66,7 @@ const handleWordSelected = async (unit: Unit | null) => {
 </script>
 
 <template>
-  <div class="w-full max-w-2xl">
+  <div class="w-full max-w-2xl mx-auto">
     <TextEditorText
       :maxLength="maxLength"
       @word-selected="handleWordSelected"

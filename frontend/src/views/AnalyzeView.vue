@@ -52,7 +52,7 @@ onMounted(async () => {
     </header>
 
     <!-- Main content area -->
-    <main class="p-4 flex-grow flex flex-col items-center">
+    <main class="p-4 flex-grow">
       <!-- Text editing and analysis area -->
       <TextEditor @word-selected="handleWordSelected" @analysis-complete="handleAnalysisComplete" />
 
@@ -62,5 +62,8 @@ onMounted(async () => {
       <!-- Show vocabulary list if available -->
       <VocabularyList v-if="vocab.length" :vocab="vocab" />
     </main>
+
+    <!-- Footer -->
+    <footer></footer>
   </div>
 </template>
