@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmits } from 'vue'
+import { computed } from 'vue'
 import { mdiPalette, mdiFilter, mdiCog } from '@mdi/js'
 import { useSettingsStore } from '@/stores/settings'
 import { useUserStore } from '@/stores/user'

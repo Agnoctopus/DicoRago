@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineEmits, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import ToggleSwitch from '@/components/ToggleSwitch.vue'
 import { mdiLightbulb, mdiTranslate, mdiTrashCan, mdiPencil } from '@mdi/js'
 import { useSettingsStore } from '@/stores/settings'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, defineEmits } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { useSettingsStore } from '@/stores/settings'
 import type { LearnedWord, Word, Sense } from '@/types'
