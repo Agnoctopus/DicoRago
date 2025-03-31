@@ -1,80 +1,91 @@
 <template>
   <div class="container">
-    <h2>Dicorago Login</h2>
-    <div v-if="!online" class="offline">No internet connection. Please check your connection.</div>
-    <div v-else>
-      <p>Click the button below to sign in with Google.</p>
-      <button @click="startGoogleSignIn">Sign in with Google</button>
-    </div>
+    <h2>Connexion Dicorago</h2>
     <p v-if="message">{{ message }}</p>
+    <button v-if="!loading && !token" @click="startLogin">
+      Se connecter avec Google
+    </button>
+    <p v-if="loading">Connexion en cours, veuillez patienter...</p>
   </div>
 </template>
 
-<script setup lang="ts">
-console.log(1);
-// Declare QWebChannel and qt if types are not available
-declare const QWebChannel: any
-declare const qt: any
+<script lang="ts">
+import { defineComponent, onMounted, ref } from 'vue'
 
-import { ref, onMounted } from 'vue'
+export default defineComponent({
+  name: "LoginPage",
+  setup() {
+    const token = ref<string | null>(null)
+    const loading = ref(false)
+    const message = ref("")
 
-const online = ref<boolean>(navigator.onLine)
-const message = ref<string>('')
+    // Envoie le token vers l'extension via QWebChannel
+    function sendTokenToAnki(token: string) {
+      if ((window as any).authHandler && typeof (window as any).authHandler.sendToken === 'function') {
+        (window as any).authHandler.sendToken(token)
+      } else {
+        console.error("authHandler indisponible")
+      }
+    }
 
-function updateOnlineStatus(): void {
-  online.value = navigator.onLine
-}
+    // Extrait le token des paramètres d'URL (exemple : ?token=abc123)
+    function extractTokenFromUrl(): string | null {
+      const params = new URLSearchParams(window.location.search)
+      return params.get("token")
+    }
 
-onMounted(() => {
-  window.addEventListener('online', updateOnlineStatus)
-  window.addEventListener('offline', updateOnlineStatus)
+    // Lance le processus de connexion en redirigeant vers dicorago.com/google
+    function startLogin() {
+      loading.value = true
+      // On utilise l'URL actuelle (sans query) comme redirect_uri
+      const currentUrl = window.location.href.split('?')[0]
+      const redirectUrl = encodeURIComponent(currentUrl)
+      const loginUrl = `http://localhost:5173/anki/sign-in?redirect_uri=${redirectUrl}`
+      window.location.href = loginUrl
+    }
 
-  // Initialize QWebChannel to expose the Python authHandler
-  if (typeof qt !== 'undefined' && qt.webChannelTransport) {
-    new QWebChannel(qt.webChannelTransport, (channel: any) => {
-      ;(window as any).authHandler = channel.objects.authHandler
+    onMounted(() => {
+      // Initialisation du QWebChannel pour exposer authHandler
+      if (typeof (window as any).qt !== 'undefined' && (window as any).qt.webChannelTransport) {
+        new (window as any).QWebChannel((window as any).qt.webChannelTransport, (channel: any) => {
+          (window as any).authHandler = channel.objects.authHandler
+        })
+      } else {
+        console.error("qt ou webChannelTransport n'est pas défini")
+      }
+
+      // Si la page est rechargée avec un token dans l'URL, on le récupère
+      const urlToken = extractTokenFromUrl()
+      if (urlToken) {
+        token.value = urlToken
+        message.value = "Authentification réussie, transmission du token..."
+        sendTokenToAnki(urlToken)
+      }
     })
-  } else {
-    console.error('qt is not defined. QWebChannel cannot be initialized.')
+
+    return {
+      token,
+      loading,
+      message,
+      startLogin
+    }
   }
 })
-
-function startGoogleSignIn(): void {
-  if (!navigator.onLine) {
-    message.value = 'No internet connection. Please try again later.'
-    return
-  }
-  message.value = 'Starting Google sign-in...'
-
-  // Simulate an asynchronous authentication process (replace with your real flow)
-  setTimeout(() => {
-    const token: string = 'demo_token_123' // Replace with the actual token from your backend
-    if (
-      (window as any).authHandler &&
-      typeof (window as any).authHandler.sendToken === 'function'
-    ) {
-      ;(window as any).authHandler.sendToken(token)
-    }
-  }, 2000)
-}
 </script>
 
 <style scoped>
 .container {
-  max-width: 600px;
+  max-width: 500px;
   margin: 0 auto;
+  padding: 2rem;
   text-align: center;
   font-family: Arial, sans-serif;
-  padding: 20px;
 }
-.offline {
-  color: red;
-  font-weight: bold;
-  margin-bottom: 20px;
-}
+
 button {
-  padding: 10px 20px;
-  font-size: 16px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
   cursor: pointer;
+  margin-top: 1rem;
 }
 </style>

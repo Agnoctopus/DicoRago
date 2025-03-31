@@ -119,7 +119,7 @@ onMounted(async () => {
       callback: handleGoogleCredentialResponse,
     })
   }
-  // Initialize Apple ID SDK.
+  // Initialize Apple ID SDK if available.
   if (window.AppleID && window.AppleID.auth) {
     window.AppleID.auth.init({
       clientId: 'com.DicoRago.webapp',
@@ -160,7 +160,7 @@ onMounted(async () => {
             </svg>
             <span>Coloring Only Unknown</span>
           </div>
-          <ToggleSwitch v-model="onlyUnknown"/>
+          <ToggleSwitch v-model="onlyUnknown" />
         </div>
 
         <!-- Dictionary language selector with icon -->
