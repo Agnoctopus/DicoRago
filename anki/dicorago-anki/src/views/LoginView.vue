@@ -1,91 +1,59 @@
-<template>
-  <div class="container">
-    <h2>Connexion Dicorago</h2>
-    <p v-if="message">{{ message }}</p>
-    <button v-if="!loading && !token" @click="startLogin">
-      Se connecter avec Google
-    </button>
-    <p v-if="loading">Connexion en cours, veuillez patienter...</p>
-  </div>
-</template>
+<script setup lang="ts">
+import { onMounted, ref, nextTick } from 'vue'
 
-<script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue'
-
-export default defineComponent({
-  name: "LoginPage",
-  setup() {
-    const token = ref<string | null>(null)
-    const loading = ref(false)
-    const message = ref("")
-
-    // Envoie le token vers l'extension via QWebChannel
-    function sendTokenToAnki(token: string) {
-      if ((window as any).authHandler && typeof (window as any).authHandler.sendToken === 'function') {
-        (window as any).authHandler.sendToken(token)
-      } else {
-        console.error("authHandler indisponible")
-      }
+// Declare the global types for window properties.
+declare global {
+  interface Window {
+    anki: {
+      syncVocabulary: (vocabJson: string) => void
     }
-
-    // Extrait le token des paramètres d'URL (exemple : ?token=abc123)
-    function extractTokenFromUrl(): string | null {
-      const params = new URLSearchParams(window.location.search)
-      return params.get("token")
-    }
-
-    // Lance le processus de connexion en redirigeant vers dicorago.com/google
-    function startLogin() {
-      loading.value = true
-      // On utilise l'URL actuelle (sans query) comme redirect_uri
-      const currentUrl = window.location.href.split('?')[0]
-      const redirectUrl = encodeURIComponent(currentUrl)
-      const loginUrl = `https://agno.re/anki`
-      window.location.href = loginUrl
-    }
-
-    onMounted(() => {
-      // Initialisation du QWebChannel pour exposer authHandler
-      if (typeof (window as any).qt !== 'undefined' && (window as any).qt.webChannelTransport) {
-        new (window as any).QWebChannel((window as any).qt.webChannelTransport, (channel: any) => {
-          (window as any).authHandler = channel.objects.authHandler
-        })
-      } else {
-        console.error("qt ou webChannelTransport n'est pas défini")
-      }
-
-      // Si la page est rechargée avec un token dans l'URL, on le récupère
-      const urlToken = extractTokenFromUrl()
-      if (urlToken) {
-        token.value = urlToken
-        message.value = "Authentification réussie, transmission du token..."
-        sendTokenToAnki(urlToken)
-      }
-    })
-
-    return {
-      token,
-      loading,
-      message,
-      startLogin
-    }
+    qt?: any
+    QWebChannel?: any
   }
+}
+
+const loading = ref(false)
+const message = ref('')
+const inAnki = ref(false)
+
+// Starts the login process by redirecting to the login URL.
+function startLogin() {
+  loading.value = true
+  // Use the current URL (without query) as the redirect_uri.
+  const currentUrl = window.location.href.split('?')[0]
+  const redirectUrl = encodeURIComponent(currentUrl)
+  // Replace with your actual login URL if needed.
+  const loginUrl = `https://agno.re/anki`
+  window.location.href = loginUrl
+}
+
+onMounted(() => {
+  window.anki.syncVocabulary("test")
+  inAnki.value = !!window.anki;
 })
 </script>
 
-<style scoped>
-.container {
-  max-width: 500px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
+<template>
+  <div
+    class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-indigo-600"
+  >
+    <div class="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
+      <h2 class="text-3xl font-bold text-center mb-4">Dicorago Login</h2>
+      <p v-if="message" class="mb-4 text-center text-gray-700">{{ message }}</p>
+      <button
+        v-if="!loading"
+        @click="startLogin"
+        class="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
+      >
+        Sign in with Google
+      </button>
+      <p v-if="loading" class="mt-4 text-center text-gray-600">Logging in, please wait...</p>
+      <p v-if="inAnki" class="mt-4 text-center text-green-600">Running in Anki</p>
+      <p v-if="!inAnki" class="mt-4 text-center text-red-600">Not running in Anki</p>
+    </div>
+  </div>
+</template>
 
-button {
-  padding: 1rem 2rem;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-}
+<style scoped>
+/* Tailwind CSS handles all styling */
 </style>
