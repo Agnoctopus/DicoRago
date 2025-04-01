@@ -212,6 +212,7 @@ async def auth_google(
 @router.post("/apple")
 @router.post("/apple/anki")
 async def auth_apple(
+    request: Request,
     id_token: str = Form(...),
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
