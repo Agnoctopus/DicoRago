@@ -6,6 +6,7 @@ import HomeView from '../views/HomeView.vue'
 import ChangelogView from '../views/ChangelogView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import AnkiView from '../views/AnkiView.vue'
+import AnkiLoginView from '../views/AnkiLoginView.vue'
 
 /** Application routes definition */
 const routes: Array<RouteRecordRaw> = [
@@ -33,6 +34,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/anki',
     name: 'AnkiView',
     component: AnkiView,
+  },
+  {
+    path: '/anki/login',
+    name: 'AnkiLoginView',
+    component: AnkiLoginView,
   },
   // Catch-all route for handling 404 errors
   {
