@@ -5,7 +5,7 @@ import DictionaryView from '../views/DictionaryView.vue'
 import HomeView from '../views/HomeView.vue'
 import ChangelogView from '../views/ChangelogView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
-import AnkiLogin from '../views/AnkiLogin.vue'
+import AnkiView from '../views/AnkiView.vue'
 
 /** Application routes definition */
 const routes: Array<RouteRecordRaw> = [
@@ -30,9 +30,9 @@ const routes: Array<RouteRecordRaw> = [
     component: ChangelogView,
   },
   {
-    path: '/anki/sign-in',
-    name: 'AnkiLogin',
-    component: AnkiLogin,
+    path: '/anki',
+    name: 'AnkiView',
+    component: AnkiView,
   },
   // Catch-all route for handling 404 errors
   {
