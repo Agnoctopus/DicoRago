@@ -153,7 +153,7 @@ def create_auth_response(
     """
     token = {f"{provider}_id": user_identifier}
     auth_session = jwt.encode(token, AUTH_SECRET, algorithm="HS256")
-    response = RedirectResponse(url="/", status_code=302)
+    response = RedirectResponse(url=redirect_url, status_code=302)
     response.set_cookie(
         key="auth_session",
         value=auth_session,

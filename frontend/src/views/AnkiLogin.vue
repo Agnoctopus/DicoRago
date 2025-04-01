@@ -85,7 +85,7 @@ onMounted(() => {
         window.AppleID.auth.init({
           clientId: 'com.DicoRago.webapp',
           scope: 'name email',
-          redirectURI: 'https://agno.re/api/auth/anki/apple/anki',
+          redirectURI: 'https://agno.re/api/auth/apple/anki',
           usePopup: false,
         })
       }
