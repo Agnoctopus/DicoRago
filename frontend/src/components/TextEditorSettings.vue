@@ -59,6 +59,7 @@ interface GoogleSDK {
     id: {
       prompt: () => void
       initialize: (options: Record<string, unknown>) => void
+      renderButton: (element: HTMLElement, options: Record<string, unknown>) => void
     }
   }
 }

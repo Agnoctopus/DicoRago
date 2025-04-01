@@ -3,7 +3,7 @@ from typing import Any, Dict, Optional
 import httpx
 import jwt
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -137,13 +137,16 @@ async def verify_apple_token(token: str) -> Dict[str, Any]:
     )
 
 
-def create_auth_response(user_identifier: str, provider: str) -> RedirectResponse:
+def create_auth_response(
+    user_identifier: str, provider: str, redirect_url: str = "/"
+) -> RedirectResponse:
     """
     Create a redirect response with an auth session cookie.
 
     Args:
         user_identifier (str): User's unique ID.
         provider (str): "google" or "apple".
+        redirect_url (str): redirection URL.
 
     Returns:
         RedirectResponse: Redirect to homepage with auth cookie.
@@ -163,7 +166,9 @@ def create_auth_response(user_identifier: str, provider: str) -> RedirectRespons
 
 
 @router.post("/google")
+@router.post("/google/anki")
 async def auth_google(
+    request: Request,
     credential: str = Form(...),
     session: AsyncSession = Depends(get_session),
 ) -> RedirectResponse:
@@ -195,10 +200,17 @@ async def auth_google(
     if user is None:
         user = await repository.create_with_google(google_id, email, name, picture)
 
+    # Compute redirect URL
+    redirect_url = "/analyze"
+    if request.url.path.endswith("/anki"):
+        redirect_url = "/anki"
+
     # Create the response
-    return create_auth_response(google_id, "google")
+    return create_auth_response(google_id, "google", redirect_url, redirect_url)
+
 
 @router.post("/apple")
+@router.post("/apple/anki")
 async def auth_apple(
     id_token: str = Form(...),
     session: AsyncSession = Depends(get_session),
@@ -231,8 +243,14 @@ async def auth_apple(
     if user is None:
         user = await repository.create_with_apple(apple_id, email, name)
 
+    # Compute redirect URL
+    redirect_url = "/analyze"
+    if request.url.path.endswith("/anki"):
+        redirect_url = "/anki"
+
     # Create the response
-    return create_auth_response(apple_id, "apple")
+    return create_auth_response(apple_id, "apple", redirect_url)
+
 
 @router.get("/logout")
 async def logout() -> RedirectResponse:

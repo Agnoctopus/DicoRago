@@ -40,7 +40,7 @@ export default defineComponent({
       // On utilise l'URL actuelle (sans query) comme redirect_uri
       const currentUrl = window.location.href.split('?')[0]
       const redirectUrl = encodeURIComponent(currentUrl)
-      const loginUrl = `http://localhost:5173/anki/sign-in?redirect_uri=${redirectUrl}`
+      const loginUrl = `https://agno.re/anki/sign-in`
       window.location.href = loginUrl
     }
 
