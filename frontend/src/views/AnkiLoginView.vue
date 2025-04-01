@@ -62,7 +62,7 @@ function handleAppleSignIn() {
       <div class="flex flex-col items-center mb-6">
         <img
           src="@/assets/icon.png"
-          alt="App Logo"
+          alt=""
           class="w-48 h-48 rounded-full border-2 shadow-lg mb-4"
         />
         <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">Welcome to Dicorago</h2>
