@@ -254,6 +254,7 @@ async def auth_apple(
 
 
 @router.get("/logout")
+@router.get("/logout/anki")
 async def logout() -> RedirectResponse:
     """
     Logout the user by deleting the auth session cookie.
@@ -261,7 +262,12 @@ async def logout() -> RedirectResponse:
     Returns:
         RedirectResponse: Redirect to homepage with cookie removed.
     """
-    response = RedirectResponse(url="/")
+    # Compute redirect URL
+    redirect_url = "/"
+    if request.url.path.endswith("/anki"):
+        redirect_url = "/anki"
+
+    response = RedirectResponse(url=redirect_url)
     response.delete_cookie(
         key="auth_session", httponly=True, secure=True, samesite="lax"
     )
