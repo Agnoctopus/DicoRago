@@ -206,7 +206,7 @@ async def auth_google(
         redirect_url = "/anki"
 
     # Create the response
-    return create_auth_response(google_id, "google", redirect_url, redirect_url)
+    return create_auth_response(google_id, "google", redirect_url)
 
 
 @router.post("/apple")
