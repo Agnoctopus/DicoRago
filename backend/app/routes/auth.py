@@ -255,7 +255,7 @@ async def auth_apple(
 
 @router.get("/logout")
 @router.get("/logout/anki")
-async def logout() -> RedirectResponse:
+async def logout(request: Request) -> RedirectResponse:
     """
     Logout the user by deleting the auth session cookie.
 
