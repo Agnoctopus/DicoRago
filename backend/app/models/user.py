@@ -23,7 +23,7 @@ class User(Base):
         email (str): Email address.
         name (str): Unique username.
         picture (Optional[str]): Link to avatar picture.
-        learned_words (List[LearnedWord]): Words learned by the user.
+        vocab_words (List[VocabWord]): Vocabulary words.
     """
 
     __tablename__ = "users"
@@ -41,41 +41,41 @@ class User(Base):
     email: Mapped[str] = mapped_column(String, nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False, unique=True, index=True)
     picture: Mapped[str] = mapped_column(String, nullable=True)
-    learned_words: Mapped[List["LearnedWord"]] = relationship(
-        "LearnedWord", back_populates="user"
+    vocab_words: Mapped[List["VocabWord"]] = relationship(
+        "VocabWord", back_populates="user"
     )
 
 
-class LearnedWord(Base):
+class VocabWord(Base):
     """
-    Represents a word learned by a user.
+    Represents a word vocabulary word from a user.
 
     Attributes:
         id (int): Unique identifier.
         written (str): Written form.
-        learned (bool): Whether the word is learned.
+        status (str): Satus of the words.
         updated_at (datetime): Timestamp of the last update.
         user_id (int): Foreign key to the user.
         user (User): Associated user.
     """
 
-    __tablename__ = "learned_words"
+    __tablename__ = "vocab_words"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     written: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    learned: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, index=True)
 
     # User relation
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True
     )
-    user: Mapped["User"] = relationship("User", back_populates="learned_words")
+    user: Mapped["User"] = relationship("User", back_populates="vocab_words")
 
     # Index
     __table_args__ = (
         # To get last update
         Index("idx_user_updated", "user_id", "updated_at"),
-        # To get learned count
-        Index("idx_user_learned", "user_id", "learned"),
+        # To get status count
+        Index("idx_user_status", "user_id", "status"),
     )

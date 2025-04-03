@@ -182,23 +182,30 @@ class UserInfoSchema(BaseModel):
         from_attributes = True
 
 
-class LearnedWordSchema(BaseModel):
+class VocabWordSchema(BaseModel):
     """
-    Schema representing a learned word.
+    Schema representing a vocab word.
 
     Attributes:
         written (str): Written form.
-        learned (bool): Whether the word is learned.
+        status (str): Status of the word.
         updated_at (datetime): Timestamp of the last update.
     """
 
     written: str
-    learned: bool
+    status: str
     updated_at: datetime
+
+    @validator("status")
+    def validate_status(cls, value):
+        allowed_statuses = {"unknown", "learned", "ignore", "seen"}
+        if value not in allowed_statuses:
+            raise ValueError(f"Status must be one of {allowed_statuses}")
+        return value
 
     class Config:
         """
-        Configuration for the LearnedWord class.
+        Configuration for the VocabWord class.
         """
 
         from_attributes = True
@@ -209,11 +216,11 @@ class VocStatusSchema(BaseModel):
     Represents the vocabulary status
 
     Attributes:
-        learned_count (int): Total number of words learned.
+        status_count (int): Total number of seen and learned words.
         last_update (datetime): Timestamp of the most recent voc update.
     """
 
-    learned_count: int
+    status_count: int
     last_update: datetime
 
 
