@@ -127,8 +127,8 @@ const showExportImport = ref(false)
           </button>
         </div>
         <!-- Sort Order Select -->
-        <div>
-          <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
+        <div class="w-full">
+          <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10 w-full">
             <option value="date">By Date</option>
             <option value="alphabetical">Alphabetical</option>
           </select>
