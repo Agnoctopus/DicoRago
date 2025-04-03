@@ -61,3 +61,7 @@
 .word-box.undefined {
   background-color: #e8e8e8;
 }
+
+.word-box.seen {
+  background-color: #ffe0a8;
+}

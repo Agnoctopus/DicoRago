@@ -61,3 +61,7 @@
   text-underline-offset: 6px;
   text-decoration-thickness: 2px;
 }
+
+.word-underline.seen {
+  background-color: #ffe0a8;
+}
