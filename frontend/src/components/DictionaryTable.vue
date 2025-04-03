@@ -30,7 +30,7 @@ function toggleStatus(statusOption: string) {
   }
 }
 
-// Define the status options (excluding unknown).
+// Define the status options.
 const statusOptions = [
   { value: 'ignore', label: 'Ignore' },
   { value: 'seen', label: 'Seen' },
@@ -87,20 +87,26 @@ const showExportImport = ref(false)
 
 <template>
   <div>
-    <!-- Top Control Bar -->
-    <div
-      class="w-full max-w-2xl mx-auto mb-2 p-2 bg-white rounded shadow flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 space-x-2"
-    >
-      <!-- First Row: Search Input (full width on mobile) -->
-      <div class="w-full">
+    <!-- Top Control Bar: Always 2 rows -->
+    <div class="w-full max-w-2xl mx-auto mb-2 p-2 bg-white rounded shadow space-y-2">
+      <!-- Row 1: Search Input & Export Button -->
+      <div class="w-full flex items-center justify-between space-x-2">
         <input
           v-model="searchText"
           type="text"
           placeholder="Search words..."
           class="border border-gray-800 p-2 rounded w-full h-10"
         />
+        <button
+          @click="showExportImport = true"
+          class="flex items-center justify-center px-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          <svg class="w-6 h-6" viewBox="0 0 24 24">
+            <path :d="mdiExportVariant" fill="currentColor" />
+          </svg>
+        </button>
       </div>
-      <!-- Second Row: Status Filters, Export Button & Sort Selector (always one row) -->
+      <!-- Row 2: Status Filters & Sort Order Select -->
       <div class="w-full flex items-center justify-between space-x-2">
         <!-- Status Filter Buttons -->
         <div class="flex space-x-1">
@@ -120,16 +126,8 @@ const showExportImport = ref(false)
             {{ option.label }}
           </button>
         </div>
-        <!-- Export Button & Sort Order Select -->
-        <div class="flex items-center space-x-2">
-          <button
-            @click="showExportImport = true"
-            class="flex items-center justify-center px-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            <svg class="w-6 h-6" viewBox="0 0 24 24">
-              <path :d="mdiExportVariant" fill="currentColor" />
-            </svg>
-          </button>
+        <!-- Sort Order Select -->
+        <div>
           <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
             <option value="date">By Date</option>
             <option value="alphabetical">Alphabetical</option>
