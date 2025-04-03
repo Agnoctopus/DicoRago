@@ -32,9 +32,9 @@ function toggleStatus(statusOption: string) {
 
 // Define the status options (excluding unknown).
 const statusOptions = [
-  { value: 'learned', label: 'Learned' },
-  { value: 'seen', label: 'Seen' },
   { value: 'ignore', label: 'Ignore' },
+  { value: 'seen', label: 'Seen' },
+  { value: 'learned', label: 'Learned' },
 ]
 
 // Colors for the selected state.
@@ -51,7 +51,7 @@ const unselectedColors: Record<string, string> = {
   ignore: 'bg-white opacity-50 text-gray-600 hover:bg-gray-100',
 }
 
-// Computed property that filters and sorts the learned vocabulary.
+// Computed property that filters and sorts the vocabulary words.
 const filteredVocabWords = computed(() => {
   let filtered = vocabStore.vocabWords.filter((word) =>
     word.written.toLowerCase().includes(searchText.value.toLowerCase()),
@@ -87,51 +87,54 @@ const showExportImport = ref(false)
 
 <template>
   <div>
-    <!-- Top Control Bar: Search, Status Filters, Export & Sort -->
-    <div class="flex items-center justify-between mb-2 p-2 bg-white rounded shadow space-x-2">
-      <!-- Search Input -->
-      <input
-        v-model="searchText"
-        type="text"
-        placeholder="Search words..."
-        class="border border-gray-800 p-2 rounded w-full h-10"
-      />
-
-      <!-- Status Filter Buttons -->
-      <div class="flex space-x-1">
-        <button
-          v-for="option in statusOptions"
-          :key="option.value"
-          @click="toggleStatus(option.value)"
-          :class="[
-            'cursor-pointer p-2 font-semibold rounded-md transition-colors duration-150 focus:outline-none',
-            selectedStatuses.includes(option.value)
-              ? selectedColors[option.value]
-              : unselectedColors[option.value],
-          ]"
-          role="checkbox"
-          :aria-checked="selectedStatuses.includes(option.value)"
-        >
-          {{ option.label }}
-        </button>
+    <!-- Top Control Bar -->
+    <div
+      class="w-full max-w-2xl mx-auto mb-2 p-2 bg-white rounded shadow flex flex-col md:flex-row md:items-center md:justify-between space-y-2 md:space-y-0 space-x-2"
+    >
+      <!-- First Row: Search Input (full width on mobile) -->
+      <div class="w-full">
+        <input
+          v-model="searchText"
+          type="text"
+          placeholder="Search words..."
+          class="border border-gray-800 p-2 rounded w-full h-10"
+        />
       </div>
-
-      <!-- Export Button & Sort Order Select -->
-      <div class="flex items-center space-x-2">
-        <!-- Export/Import Button -->
-        <button
-          @click="showExportImport = true"
-          class="flex items-center justify-center px-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
-        >
-          <svg class="w-6 h-6" viewBox="0 0 24 24">
-            <path :d="mdiExportVariant" fill="currentColor" />
-          </svg>
-        </button>
-        <!-- Sort Order Select -->
-        <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
-          <option value="date">By Date</option>
-          <option value="alphabetical">Alphabetical</option>
-        </select>
+      <!-- Second Row: Status Filters, Export Button & Sort Selector (always one row) -->
+      <div class="w-full flex items-center justify-between space-x-2">
+        <!-- Status Filter Buttons -->
+        <div class="flex space-x-1">
+          <button
+            v-for="option in statusOptions"
+            :key="option.value"
+            @click="toggleStatus(option.value)"
+            :class="[
+              'cursor-pointer p-2 font-semibold rounded-md transition-colors duration-150 focus:outline-none',
+              selectedStatuses.includes(option.value)
+                ? selectedColors[option.value]
+                : unselectedColors[option.value],
+            ]"
+            role="checkbox"
+            :aria-checked="selectedStatuses.includes(option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
+        <!-- Export Button & Sort Order Select -->
+        <div class="flex items-center space-x-2">
+          <button
+            @click="showExportImport = true"
+            class="flex items-center justify-center px-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
+          >
+            <svg class="w-6 h-6" viewBox="0 0 24 24">
+              <path :d="mdiExportVariant" fill="currentColor" />
+            </svg>
+          </button>
+          <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
+            <option value="date">By Date</option>
+            <option value="alphabetical">Alphabetical</option>
+          </select>
+        </div>
       </div>
     </div>
 
