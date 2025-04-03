@@ -8,11 +8,12 @@ import { sampleData } from '@/data/sample'
 /* Sample data */
 const units: Unit[] = sampleData.units
 const text: string = sampleData.text
-const learnedVocab: string[] = sampleData.learnedVocab
+const vocabWords: Record<string, string> = sampleData.vocabWords
 const vocab = sampleData.vocab
 
 // Reactive state: currently selected unit and vocabulary list.
 const selectedUnit = ref<Unit | null>(null)
+const selectedStatus = ref<string>('undefined')
 
 /**
  * Updates the selected unit from TextEditor.
@@ -20,6 +21,11 @@ const selectedUnit = ref<Unit | null>(null)
  */
 const handleWordSelected = async (unit: Unit | null) => {
   selectedUnit.value = unit
+  if (!unit || !unit.vocabulary) {
+    selectedStatus.value = 'undefined'
+  } else {
+    selectedStatus.value = vocabWords[unit.vocabulary] ?? 'unknown'
+  }
 }
 </script>
 
@@ -85,13 +91,19 @@ const handleWordSelected = async (unit: Unit | null) => {
           <DemoAnalyzedText
             :units="units"
             :text="text"
-            :learnedVocab="learnedVocab"
+            :vocabWords="vocabWords"
             @word-selected="handleWordSelected"
           />
         </div>
       </div>
       <!-- Display details of the selected unit -->
-      <DemoUnitDetails v-if="selectedUnit" :unit="selectedUnit" :vocab="vocab" class="mt-4" />
+      <DemoUnitDetails
+        v-if="selectedUnit"
+        :unit="selectedUnit"
+        :vocab="vocab"
+        :status="selectedStatus"
+        class="mt-4"
+      />
     </div>
   </section>
 </template>

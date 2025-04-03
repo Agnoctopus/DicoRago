@@ -5,7 +5,7 @@ import type { Unit } from '@/types'
 const props = defineProps<{
   units: Unit[]
   text: string
-  learnedVocab: string[]
+  vocabWords: Record<string, string>
 }>()
 
 // Événement à émettre au parent.
@@ -27,7 +27,7 @@ const editorStyle = `editor-${annotationStyle}`
  * Transforme le texte original en ajoutant des balises <span>
  * autour de chaque mot (défini dans les unités).
  * La classe supplémentaire est ajoutée selon que le mot est connu
- * (vocabulary figure dans props.learnedVocab), inconnu, ou indéfini.
+ * (vocabulary figure dans props.vocabWords), inconnu, ou indéfini.
  * Les retours à la ligne sont remplacés par des <br>.
  */
 function annotateText(original: string, units: Unit[]): string {
@@ -40,11 +40,18 @@ function annotateText(original: string, units: Unit[]): string {
     let extraClass = ''
     if (coloringEnabled) {
       if (unit.vocabulary) {
-        const known = props.learnedVocab.includes(unit.vocabulary)
+        const status = props.vocabWords[unit.vocabulary] ?? 'unknown'
+
         if (onlyUnknownColoring) {
-          if (!known) extraClass = ' unknown'
+          if (status === 'unknown') extraClass = ' unknown'
         } else {
-          extraClass = known ? ' known' : ' unknown'
+          if (status === 'learned') {
+            extraClass = ' known'
+          } else if (status === 'seen') {
+            extraClass = ' seen'
+          } else if (status === 'unknown') {
+            extraClass = ' unknown'
+          }
         }
       } else if (!onlyUnknownColoring) {
         extraClass = ' undefined'

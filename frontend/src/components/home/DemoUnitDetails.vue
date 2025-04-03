@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import type { Unit, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
 import { tagMeanings } from '@/data/tag'
+import { mdiHelpCircleOutline } from '@mdi/js'
 
 /**
  * Props:
@@ -12,6 +13,7 @@ import { tagMeanings } from '@/data/tag'
 const props = defineProps<{
   unit: Unit
   vocab: Word[]
+  status: string
 }>()
 
 // Returns words matching the unit's vocabulary property.
@@ -30,6 +32,31 @@ const aggregatedSenses = computed(() => {
   })
   return senses
 })
+
+// Define the status options.
+// For "unknown," the label is removed so that an icon is used instead.
+const statusOptions = [
+  { value: 'ignore', label: 'Ignore' },
+  { value: 'seen', label: 'Seen' },
+  { value: 'learned', label: 'Learned' },
+  { value: 'unknown', label: '' },
+]
+
+// Colors for the selected state.
+const selectedColors: Record<string, string> = {
+  learned: 'bg-[#c0ffc0] text-green-800', // Pale green background for learned.
+  seen: 'bg-[#ffe0a8] text-orange-900',
+  unknown: 'bg-red-100 text-red-400 hover:bg-red-100', // For unknown, the background is light.
+  ignore: 'bg-gray-300 text-black',
+}
+
+// Colors for the unselected state (no borders, just colored text with subtle hover).
+const unselectedColors: Record<string, string> = {
+  learned: 'bg-white opacity-50 text-green-600 hover:bg-green-100',
+  seen: 'bg-white opacity-50 text-orange-600 hover:bg-orange-100',
+  unknown: 'bg-white opacity-50 text-red-400 hover:bg-red-100',
+  ignore: 'bg-white opacity-50 text-gray-600 hover:bg-gray-100',
+}
 </script>
 
 <template>
@@ -59,22 +86,35 @@ const aggregatedSenses = computed(() => {
     <div class="lg:w-3/5 lg:pl-8 flex items-center justify-center">
       <!-- Vocabulary Section -->
       <div class="w-full h-full bg-white p-4 rounded shadow">
-        <!-- Header with title and learned checkbox -->
+        <!-- Header with title and status selection -->
         <div class="flex items-center justify-between mb-4">
-          <!-- Left: Vocabulary label -->
-          <div class="flex-1 text-left">
-            <h3 class="text-xl font-semibold">Vocabulary</h3>
+          <!-- Vocabulary word inside a styled container -->
+          <div class="px-2 py-1 border border-gray-300 rounded-md bg-gray-50">
+            <h2 class="text-2xl font-bold">{{ unit.vocabulary ?? unit.word }}</h2>
           </div>
-          <!-- Center: Display vocabulary word -->
-          <div class="flex-1 text-center">
-            <span class="text-2xl font-extrabold">{{ unit.vocabulary ?? unit.word }}</span>
-          </div>
-          <!-- Right: "Learned" checkbox -->
-          <div class="flex-1 text-right">
-            <label class="flex items-center justify-end space-x-2 cursor-pointer opacity-80">
-              <input type="checkbox" disabled="true" class="form-checkbox h-4 w-4" />
-              <span class="text-sm">Learned</span>
-            </label>
+          <!-- Status buttons -->
+          <div role="radiogroup" class="flex space-x-1">
+            <button
+              v-for="option in statusOptions"
+              :key="option.value"
+              :class="[
+                'cursor-pointer px-2 py-1 font-semibold rounded-md transition-colors duration-150 focus:outline-none',
+                status === option.value
+                  ? selectedColors[option.value]
+                  : unselectedColors[option.value],
+              ]"
+              role="radio"
+              :aria-checked="status === option.value"
+            >
+              <template v-if="option.value === 'unknown'">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path :d="mdiHelpCircleOutline" />
+                </svg>
+              </template>
+              <template v-else>
+                {{ option.label }}
+              </template>
+            </button>
           </div>
         </div>
 
