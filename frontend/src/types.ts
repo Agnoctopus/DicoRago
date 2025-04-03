@@ -84,30 +84,20 @@ export interface User {
  * Represents the vocabulary status.
  */
 export interface VocStatus {
-  /** Total number of words learned. */
-  learned_count: number
+  /** Total number of words learned, seen and ignored. */
+  status_count: number
   /** Timestamp of the most recent vocabulary update. */
   last_update: Date
 }
 
 /**
- * Represents a local learned word.
+ * Represents a vocabulary word.
  */
-export interface LearnedWord {
+export interface VocabWord {
   /** Written form. */
   written: string
-  /** Timestamp of the last update. */
-  updated_at: Date
-}
-
-/**
- * Represents a learned word from server.
- */
-export interface ServerLearnedWord {
-  /** Written form. */
-  written: string
-  /** Whether the word is learned. */
-  learned: boolean
+  /** Status of the word. */
+  status: string
   /** Timestamp of the last update. */
   updated_at: Date
 }
