@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { Analysis, Example, User, VocStatus, ServerLearnedWord, Word } from '@/types'
+import type { Analysis, Example, User, VocStatus, VocabWord, Word } from '@/types'
 
 /** Base URL for the REST API */
 export const restAPIBaseURL = 'http://localhost:8000'
@@ -43,7 +43,7 @@ export const getExamples = async (sense_id: number): Promise<Example[]> => {
 export const getWordsFromWritten = async (
   written: string,
   senses: boolean = true,
-  language: string = "en_US"
+  language: string = 'en_US',
 ): Promise<Word[]> => {
   const response = await api.get<Word[]>(`/written/${written}/words`, {
     params: { senses, language },
@@ -64,18 +64,18 @@ export const getUser = async (): Promise<User | null> => {
  * Updates the learning status of a vocabulary word for the current user.
  *
  * @param written - Written form.
- * @param learned - New learning status (true if learned, false otherwise).
+ * @param status - New learning status.
  * @param updated_at - Ttimestamp of the update.
  * @returns A Promise resolving to the previous VocStatus object.
  */
 export const updateUserVoc = async (
   written: string,
-  learned: boolean,
+  status: string,
   updated_at: Date,
 ): Promise<VocStatus> => {
   const response = await api.put<VocStatus>(`/user/voc`, {
     written: written,
-    learned: learned,
+    status: status,
     updated_at: updated_at.toISOString(),
   })
   const ret = response.data
@@ -88,17 +88,17 @@ export const updateUserVoc = async (
  *
  * @param updates - An array of objects, each containing:
  *    - written: the word's written form,
- *    - learned: the new learning status (true if learned, false otherwise),
+ *    - status: the new learning status,
  *    - updated_at: the timestamp of the update.
  * @returns A Promise resolving to the previous VocStatus object.
  */
 export const updateUserVocs = async (
-  updates: { written: string; learned: boolean; updated_at: Date }[],
+  updates: { written: string; status: string; updated_at: Date }[],
 ): Promise<VocStatus> => {
   // Convert each update's timestamp to an ISO string.
-  const payload = updates.map(({ written, learned, updated_at }) => ({
+  const payload = updates.map(({ written, status, updated_at }) => ({
     written,
-    learned,
+    status,
     updated_at: updated_at.toISOString(),
   }))
 
@@ -113,10 +113,10 @@ export const updateUserVocs = async (
  * Retrieves vocabulary words that have been updated since a given date.
  *
  * @param since - Starting date for retrieving.
- * @returns A Promise resolving to an array of LearnedWord objects.
+ * @returns A Promise resolving to an array of VocabWord objects.
  */
-export const getVocSince = async (since: Date): Promise<ServerLearnedWord[]> => {
-  const response = await api.get<ServerLearnedWord[]>(`/user/voc/change/${since.toISOString()}`)
+export const getVocSince = async (since: Date): Promise<VocabWord[]> => {
+  const response = await api.get<VocabWord[]>(`/user/voc/change/${since.toISOString()}`)
   const ret = response.data
 
   ret.forEach((word) => {
@@ -142,10 +142,10 @@ export const getStatusVoc = async (): Promise<VocStatus> => {
 /**
  * Retrieves all vocabulary words for the current user.
  *
- * @returns A Promise resolving to an array of LearnedWord objects.
+ * @returns A Promise resolving to an array of VocabWord objects.
  */
-export const getVoc = async (): Promise<ServerLearnedWord[]> => {
-  const response = await api.get<ServerLearnedWord[]>(`/user/voc`)
+export const getVoc = async (): Promise<VocabWord[]> => {
+  const response = await api.get<VocabWord[]>(`/user/voc`)
   const ret = response.data
 
   ret.forEach((word) => {
