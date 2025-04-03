@@ -3,13 +3,13 @@ import { defineStore } from 'pinia'
 import type { Word } from '@/types'
 import { getWordsFromWritten } from '@/api' // Ensure this function accepts language as an argument
 import { z } from 'zod'
-import { wordSchema } from '@/schemas'
+import { WordSchema } from '@/schemas'
 
 /**
  * Dictionary Schema: an object where each key is a written form,
  * and each value is an object mapping language (string) to an array of Word objects.
  */
-const dictionarySchema = z.record(z.record(z.array(wordSchema)))
+const dictionarySchema = z.record(z.record(z.array(WordSchema)))
 
 /**
  * Dictionary Store
