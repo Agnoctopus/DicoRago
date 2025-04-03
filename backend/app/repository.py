@@ -14,8 +14,8 @@ from sqlalchemy.future import select
 from sqlalchemy.orm import selectinload, with_loader_criteria
 from sqlalchemy.sql import functions
 
-from app.models import Example, LearnedWord, Sense, SenseTranslation, User, Word
-from app.schemas import LearnedWordSchema, VocStatusSchema
+from app.models import Example, Sense, SenseTranslation, User, VocabWord, Word
+from app.schemas import VocabWordSchema, VocStatusSchema
 
 
 class WordRepository:
@@ -330,7 +330,7 @@ class UserRepository:
 
 class VocRepository:
     """
-    Repository for LearnedWord model.
+    Repository for VocabWord model.
     """
 
     def __init__(self, session: AsyncSession, user_id: int):
@@ -344,19 +344,19 @@ class VocRepository:
         self.session = session
         self.user_id = user_id
 
-    async def get_by_written(self, written: str) -> Optional[LearnedWord]:
+    async def get_by_written(self, written: str) -> Optional[VocabWord]:
         """
-        Retrieve a LearnedWord record by its written form.
+        Retrieve a VocabWord record by its written form.
 
         Args:
             written (str): Written form of the word.
 
         Returns:
-            Optional[LearnedWord]: Matching LearnedWord record if found,
+            Optional[VocabWord]: Matching VocabWord record if found,
             otherwise, None.
         """
-        stmt = select(LearnedWord).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.written == written
+        stmt = select(VocabWord).where(
+            VocabWord.user_id == self.user_id, VocabWord.written == written
         )
         result = await self.session.execute(stmt)
         return result.scalars().first()
@@ -364,133 +364,147 @@ class VocRepository:
     async def get_by_writtens(
         self,
         writtens: List[str],
-    ) -> Sequence[LearnedWord]:
+    ) -> Sequence[VocabWord]:
         """
-        Retrieve LearnedWord records by many writtens form.
+        Retrieve VocabWord records by many writtens form.
 
         Args:
             writtens (List[str]): Written forms of the words.
 
         Returns:
-            Sequence[LearnedWord]: Matching LearnedWord records if found
+            Sequence[VocabWord]: Matching VocabWord records if found
         """
         if len(writtens) == 0:
             return []
 
-        stmt = select(LearnedWord).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.written.in_(writtens)
+        stmt = select(VocabWord).where(
+            VocabWord.user_id == self.user_id, VocabWord.written.in_(writtens)
         )
         result = await self.session.execute(stmt)
         words = result.scalars().all()
 
         return words
 
-    async def get_all(self) -> Sequence[LearnedWord]:
+    async def get_all(self, statuses: Sequence[str]) -> Sequence[VocabWord]:
         """
-        Retrieve all LearnedWord records marked as learned for the user.
+        Retrieve all VocabWord records whose status is in the provided list.
+
+        Args:
+            statuses (Sequence[str]): List of statuses to filter by.
 
         Returns:
-            Sequence[LearnedWord]: Learned words.
+            Sequence[VocabWord]: Matching VocabWord.
         """
-        stmt = select(LearnedWord).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.learned
+        if not statuses:
+            return []
+
+        stmt = select(VocabWord).where(
+            VocabWord.user_id == self.user_id, VocabWord.status.in_(statuses)
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def get_since(self, since: datetime) -> Sequence[LearnedWord]:
+    async def get_since(self, since: datetime) -> Sequence[VocabWord]:
         """
-        Retrieve all LearnedWord records updated on or after the specified datetime.
+        Retrieve all VocabWord records updated on or after the specified datetime.
 
         Args:
             since (datetime): Datetime to start the search from.
 
         Returns:
-            Sequence[LearnedWord]: LearnedWord records updated since the given datetime.
+            Sequence[VocabWord]: VocabWord records updated since the given datetime.
         """
-        stmt = select(LearnedWord).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.updated_at >= since
+        stmt = select(VocabWord).where(
+            VocabWord.user_id == self.user_id, VocabWord.updated_at >= since
         )
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
-    async def add_learned(self, word: LearnedWordSchema) -> LearnedWord:
+    async def add_word(self, word: VocabWordSchema) -> VocabWord:
         """
-        Add a new LearnedWord record to the user's vocabulary.
+        Add a new VocabWord record to the user's vocabulary.
 
         Args:
-            word (LearnedWordSchema): Data schema containing the learned word details.
+            word (VocabWordSchema): Data schema containing the VocabWord details.
 
         Returns:
-            LearnedWord: Newly created LearnedWord record.
+            VocabWord: Newly created VocabWord record.
         """
-        learned_word = LearnedWord(
+        vocab_word = VocabWord(
             written=word.written,
-            learned=word.learned,
+            status=word.status,
             updated_at=word.updated_at,
             user_id=self.user_id,
         )
-        self.session.add(learned_word)
+        self.session.add(vocab_word)
         await self.session.commit()
-        return learned_word
+        return vocab_word
 
-    async def add_learned_batch(self, words: List[LearnedWordSchema]) -> LearnedWord:
+    async def add_words(self, words: List[VocabWordSchema]) -> VocabWord:
         """
-        Add a new LearnedWord record to the user's vocabulary.
+        Add a new VocabWord record to the user's vocabulary.
 
         Args:
-            word (List[LearnedWordSchema]): Data schema containing the learned words details.
+            word (List[VocabWordSchema]): Data schema containing the VocabWord details.
 
         Returns:
-            LearnedWord: Newly created LearnedWord record.
+            VocabWord: Newly created VocabWord records.
         """
+        vocab_words = []
         for word in words:
-            learned_word = LearnedWord(
+            vocab_word = VocabWord(
                 written=word.written,
-                learned=word.learned,
+                status=word.status,
                 updated_at=word.updated_at,
                 user_id=self.user_id,
             )
-            self.session.add(learned_word)
+            self.session.add(vocab_word)
+            vocab_words.append(vocab_word)
         await self.session.commit()
-        return learned_word
+        return vocab_words
 
-    async def remove_learned(self, word: LearnedWord) -> None:
+    async def remove_word(self, word: VocabWord) -> None:
         """
-        Remove an existing LearnedWord record from the user's vocabulary.
+        Remove an existing VocabWord record from the user's vocabulary.
 
         Args:
-            word (LearnedWord): LearnedWord record to remove.
+            word (VocabWord): VocabWord record to remove.
         """
         await self.session.delete(word)
         await self.session.commit()
 
     async def get_last_update_at(self) -> Optional[datetime]:
         """
-        Retrieve the timestamp of the most recent update among LearnedWord records.
+        Retrieve the timestamp of the most recent update among VocabWord records.
 
         Returns:
             Optional[datetime]: Last update timestamp if available; otherwise, None.
         """
         stmt = (
-            select(LearnedWord)
-            .where(LearnedWord.user_id == self.user_id)
-            .order_by(LearnedWord.updated_at.desc())
+            select(VocabWord)
+            .where(VocabWord.user_id == self.user_id)
+            .order_by(VocabWord.updated_at.desc())
             .limit(1)
         )
         result = await self.session.execute(stmt)
         word = result.scalars().first()
         return word.updated_at if word else None
 
-    async def get_count(self) -> int:
+    async def get_count(self, statuses: Sequence[str]) -> int:
         """
-        Count the number of LearnedWord records marked as learned for the user.
+        Count the number of VocabWord records filter by statues.
+
+        Args:
+            statuses (Sequence[str]): List of statuses to filter by.
 
         Returns:
-            int: Count of learned words.
+            int: Count of words matching statuses.
         """
+        if not statuses:
+            return 0
+
         stmt = select(functions.count()).where(
-            LearnedWord.user_id == self.user_id, LearnedWord.learned
+            VocabWord.user_id == self.user_id, VocabWord.status.in_(statuses)
         )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() or 0
@@ -502,16 +516,16 @@ class VocRepository:
         Returns:
             VocStatusSchema: Schema containing vocabulary status details.
         """
-        learned_count = await self.get_count()
-        if learned_count != 0:
+        status_count = await self.get_count(["learned", "seen", "ignore"])
+        if status_count != 0:
             last_update_at = await self.get_last_update_at()
         else:
             last_update_at = datetime.fromtimestamp(0)
-        return VocStatusSchema(learned_count=learned_count, last_update=last_update_at)
+        return VocStatusSchema(status_count=status_count, last_update=last_update_at)
 
     async def clear_all(self) -> None:
         """
-        Delete all learned vocabulary words for the user.
+        Delete all vocabulary words for the user.
         """
-        stmt = delete(LearnedWord).where(LearnedWord.user_id == self.user_id)
+        stmt = delete(VocabWord).where(VocabWord.user_id == self.user_id)
         await self.session.execute(stmt)

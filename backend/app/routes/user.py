@@ -9,7 +9,7 @@ from app.config import settings
 from app.databases.main_db import get_session
 from app.models import User
 from app.repository import UserRepository, VocRepository
-from app.schemas import LearnedWordSchema, UserInfoSchema, VocStatusSchema
+from app.schemas import UserInfoSchema, VocabWordSchema, VocStatusSchema
 
 router = APIRouter(prefix="/user", tags=["User"])
 
@@ -81,15 +81,15 @@ async def get_user_info(
 
 @router.put("/voc", response_model=VocStatusSchema)
 async def update_voc(
-    voc_req: LearnedWordSchema,
+    voc_req: VocabWordSchema,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> VocStatusSchema:
     """
-    Put a vocabulary word.
+    Update a vocabulary word.
 
     Args:
-        voc_req (LearnedWordSchema): Vocabulary word details to put.
+        voc_req (VocabWordSchema): Vocabulary word details to put.
         user (User): Authenticated user.
         session (AsyncSession): DB session dependency.
 
@@ -99,18 +99,18 @@ async def update_voc(
     # Create repository instance to access user data
     repository = VocRepository(session, user.id)
 
-    # Get previous status and learned word
+    # Get previous status and vocab word
     status = await repository.get_status()
-    learned_word = await repository.get_by_written(voc_req.written)
+    vocab_word = await repository.get_by_written(voc_req.written)
 
-    if learned_word is None:
+    if vocab_word is None:
         # New word: add to vocabulary
-        await repository.add_learned(voc_req)
+        await repository.add_word(voc_req)
         return status
 
     # Update existing word
-    learned_word.learned = voc_req.learned
-    learned_word.updated_at = voc_req.updated_at
+    vocab_word.status = voc_req.status
+    vocab_word.updated_at = voc_req.updated_at
     await session.commit()
 
     return status
@@ -118,25 +118,22 @@ async def update_voc(
 
 @router.put("/voc/batch", response_model=VocStatusSchema)
 async def update_voc(
-    voc_req: List[LearnedWordSchema],
+    voc_req: List[VocabWordSchema],
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
 ) -> VocStatusSchema:
     """
     Update multiple vocabulary words at once.
 
-    This endpoint updates the learning status for multiple vocabulary words.
-    It filters the input for unique 'written' values, retrieves the existing learned words,
-    updates those that already exist, and adds new ones for the rest.
-
     Args:
-        voc_req (List[LearnedWordSchema]): List of vocabulary word details to update.
+        voc_req (List[VocabWordSchema]): List of vocabulary word details to update.
         user (User): DB session dependency.
         session (AsyncSession): Database session dependency.
 
     Returns:
         VocStatusSchema: The previous vocabulary status.
     """
+    # Create repository instance to access vocabulary data
     repository = VocRepository(session, user.id)
 
     # Get previous status.
@@ -146,9 +143,9 @@ async def update_voc(
     unique_voc = {word.written: word for word in voc_req}.values()
     writtens = [word.written for word in unique_voc]
 
-    # Retrieve existing learned words for these written forms.
-    existing_learned = await repository.get_by_writtens(writtens)
-    existing_dict = {lw.written: lw for lw in existing_learned}
+    # Retrieve existing vocab words for these written forms.
+    existing_vocab = await repository.get_by_writtens(writtens)
+    existing_dict = {lw.written: lw for lw in existing_vocab}
 
     new_words = []
     # Process each unique incoming word.
@@ -159,46 +156,46 @@ async def update_voc(
         else:
             # Update existing word.
             existing = existing_dict[word.written]
-            existing.learned = word.learned
+            existing.status = word.status
             existing.updated_at = word.updated_at
 
     # Add new words in batch if any.
     if new_words:
-        await repository.add_learned_batch(new_words)
+        await repository.add_words(new_words)
 
     await session.commit()
     return status
 
 
-@router.get("/voc", response_model=List[LearnedWordSchema])
+@router.get("/voc", response_model=List[VocabWordSchema])
 async def get_voc(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-) -> List[LearnedWordSchema]:
+) -> List[VocabWordSchema]:
     """
-    Retrieve all learned vocabulary words.
+    Retrieve all learned or seen vocabulary words.
 
     Args:
         user (User): Authenticated user.
         session (AsyncSession): DB session dependency.
 
     Returns:
-        List[LearnedWordSchema]: A list of learned vocabulary words.
+        List[VocabWordSchema]: A list of learned or seen vocabulary words.
     """
     # Create repository instance to access user data
     repository = VocRepository(session, user.id)
 
-    learned_words = await repository.get_all()
+    vocab_words = await repository.get_all(["learned", "seen", "ignore"])
 
-    return [LearnedWordSchema.from_orm(word) for word in learned_words]
+    return [VocabWordSchema.from_orm(word) for word in vocab_words]
 
 
-@router.get("/voc/change/{since}", response_model=List[LearnedWordSchema])
+@router.get("/voc/change/{since}", response_model=List[VocabWordSchema])
 async def get_voc_change(
     since: datetime,
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-) -> List[LearnedWordSchema]:
+) -> List[VocabWordSchema]:
     """
     Retrieve vocabulary words updated since a specified datetime.
 
@@ -208,14 +205,14 @@ async def get_voc_change(
         session (AsyncSession): DB session dependency.
 
     Returns:
-        List[LearnedWordSchema]: Vocabulary words updated since the specified datetime.
+        List[VocabWordSchema]: Vocabulary words updated since the specified datetime.
     """
     # Create repository instance to access user data
     repository = VocRepository(session, user.id)
 
-    learned_words = await repository.get_since(since)
+    vocab_words = await repository.get_since(since)
 
-    return [LearnedWordSchema.from_orm(word) for word in learned_words]
+    return [VocabWordSchema.from_orm(word) for word in vocab_words]
 
 
 @router.get("/voc/status", response_model=VocStatusSchema)
@@ -247,7 +244,7 @@ async def clear_vocabulary(
     session: AsyncSession = Depends(get_session),
 ) -> None:
     """
-    Deletes all learned vocabulary words for the authenticated user.
+    Deletes all vocabulary words for the authenticated user.
 
     Args:
         user (User): Authenticated user.
