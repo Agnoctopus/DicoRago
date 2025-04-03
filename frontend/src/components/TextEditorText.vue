@@ -58,8 +58,10 @@ const updateText = () => {
  * Annotates the original text by wrapping each unit word with a <span>.
  * Applies classes based on the unit's status:
  * - 'known' if the word is learned.
- * - 'unknown' if not learned.
+ * - 'unknown' if is unknown.
+ * - 'seen' if seen.
  * - 'undefined' if no vocabulary is defined.
+ * - '' if is ignored.
  * In "only unknown" mode, only unknown words get colored.
  * Newlines are replaced with <br>.
  */
@@ -75,13 +77,20 @@ function annotateText(original: string, units: Unit[]): string {
     let extraClass = ''
     if (coloringEnabled.value) {
       if (unit.vocabulary) {
-        const known = vocabStore.isLearned(unit.vocabulary)
+        const status = vocabStore.getStatus(unit.vocabulary)
+
         if (onlyUnknownColoring.value) {
-          if (!known) {
+          if (status === 'unknown') {
             extraClass = ' unknown'
           }
         } else {
-          extraClass = known ? ' known' : ' unknown'
+          if (status === 'learned') {
+            extraClass = ' known'
+          } else if (status === 'seen') {
+            extraClass = ' seen'
+          } else if (status === 'unknown') {
+            extraClass = ' unknown'
+          }
         }
       } else if (!onlyUnknownColoring.value) {
         extraClass = ' undefined'
@@ -110,15 +119,19 @@ function updateColorize() {
     }
     const index = parseInt(indexStr, 10)
     const unit = props.units[index]
-    wordElement.classList.remove('known', 'unknown', 'undefined')
+    wordElement.classList.remove('known', 'unknown', 'undefined', 'seen')
     if (!coloringEnabled.value) {
       return
     }
     if (unit && unit.vocabulary) {
-      const known = vocabStore.isLearned(unit.vocabulary)
-      if (known) {
+      const status = vocabStore.getStatus(unit.vocabulary)
+      if (status !== 'unknown') {
         if (!onlyUnknownColoring.value) {
-          wordElement.classList.add('known')
+          if (status === 'learned') {
+            wordElement.classList.add('known')
+          } else if (status === 'seen') {
+            wordElement.classList.add('seen')
+          }
         }
       } else {
         wordElement.classList.add('unknown')
@@ -205,7 +218,7 @@ watch(onlyUnknownColoring, updateColorize)
 watch(() => annotationStyle.value, renderAnnotatedText)
 
 watch(
-  () => vocabStore.learnedVocab,
+  () => vocabStore.vocabWords,
   () => {
     if (coloringEnabled.value) {
       updateColorize()

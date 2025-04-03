@@ -23,13 +23,18 @@ const filterVocabulary = computed({
 
 /**
  * Compute filtered vocabulary:
- * If filter is enable, return only words that are not learned.
+ * If filter is enable, return only words that are unknown or seen.
  * Otherwise, return all words.
  */
 const filteredVocab = computed(() => {
-  return filterVocabulary.value
-    ? props.vocab.filter((word) => !vocabStore.isLearned(word.written))
-    : props.vocab
+  if (!filterVocabulary.value) {
+    return props.vocab
+  }
+
+  return props.vocab.filter((word) => {
+    const status = vocabStore.getStatus(word.written)
+    return status === 'unknown' || status === 'seen'
+  })
 })
 
 /**
