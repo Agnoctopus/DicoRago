@@ -4,15 +4,15 @@ defineEmits<{ (e: 'close'): void }>()
 import { mdiFileOutline } from '@mdi/js'
 import { useVocabStore } from '@/stores/vocabulary'
 
-// Get the vocabulary store instance and cast learnedVocab.
+// Access the vocabulary store.
 const vocabStore = useVocabStore()
 
 function exportAsJSON() {
-  const learnedVocab = vocabStore.learnedVocab
-  if (!learnedVocab || learnedVocab.length === 0) return
+  const vocabWords = vocabStore.vocabWords
+  if (!vocabWords || vocabWords.length === 0) return
 
   // Build an object where each key is a 'written' value and its value is 1.
-  const exportData = learnedVocab.reduce<Record<string, number>>((acc, word) => {
+  const exportData = vocabWords.reduce<Record<string, number>>((acc, word) => {
     acc[word.written] = 1
     return acc
   }, {})
@@ -30,10 +30,10 @@ function exportAsJSON() {
 }
 
 function exportAsCSV() {
-  const learnedVocab = vocabStore.learnedVocab
+  const vocabWords = vocabStore.vocabWords
 
-  // For each learned word, output its written form and a constant "1"
-  const rows = learnedVocab.map((word) => `${word.written},1`).join('\n')
+  // For each vocab word, output its written form and a constant "1"
+  const rows = vocabWords.map((word) => `${word.written},1`).join('\n')
   const csvData = rows
 
   const blob = new Blob([csvData], { type: 'text/csv' })

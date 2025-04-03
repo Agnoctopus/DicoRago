@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import DictionaryEntry from '@/components/DictionaryEntry.vue'
 import { useVocabStore } from '@/stores/vocabulary'
-import type { LearnedWord } from '@/types'
+import type { VocabWord } from '@/types'
 
-// Receive the learned vocabulary as a prop.
-defineProps<{ learnedVocab: LearnedWord[] }>()
+// Receive the vocab words as a prop.
+defineProps<{ vocabWords: VocabWord[] }>()
 // Get the vocabulary store instance.
 const vocabStore = useVocabStore()
 
 // Handle the removal of a vocabulary word.
 function handleRemove(written: string) {
-  vocabStore.toggleLearned(written, [])
+  vocabStore.setStatus(written, 'unknown', [])
 }
 </script>
 
@@ -25,9 +25,9 @@ function handleRemove(written: string) {
         </tr>
       </thead>
       <tbody>
-        <template v-if="learnedVocab.length > 0">
+        <template v-if="vocabWords.length > 0">
           <DictionaryEntry
-            v-for="(entry, index) in learnedVocab"
+            v-for="(entry, index) in vocabWords"
             :key="index"
             :vocab="entry"
             @remove="handleRemove"
@@ -35,7 +35,7 @@ function handleRemove(written: string) {
         </template>
         <tr v-else>
           <td colspan="3" class="px-4 py-2 text-center text-gray-600">
-            No learned vocabulary yet.
+            No matching vocabulary entry.
           </td>
         </tr>
       </tbody>

@@ -2,15 +2,15 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useDictionaryStore } from '@/stores/dictionary'
 import { useSettingsStore } from '@/stores/settings'
-import type { LearnedWord, Word, Sense } from '@/types'
+import type { VocabWord, Word, Sense } from '@/types'
 import SenseList from '@/components/SenseList.vue'
 import { mdiTrashCan } from '@mdi/js'
 
 /**
  * Component props:
- * - vocab: A LearnedWord object containing the written word and its update timestamp.
+ * - vocab: A VocabWord object containing the written word and its update timestamp.
  */
-const props = defineProps<{ vocab: LearnedWord }>()
+const props = defineProps<{ vocab: VocabWord }>()
 
 // Define emits to notify parent for removal of a vocabulary word.
 const emit = defineEmits<{ (e: 'remove', written: string): void }>()
@@ -39,10 +39,10 @@ watch(
 
 /**
  * Computed property to get the associated Word objects from the dictionary store
- * that match the learned word's written form. If none are found, returns an empty array.
+ * that match the vocab word's written form. If none are found, returns an empty array.
  */
 const associatedWords = computed<Word[]>(() => {
-  console.log(settingsStore.dictionaryLanguage);
+  console.log(settingsStore.dictionaryLanguage)
   return dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage) || []
 })
 
@@ -77,7 +77,7 @@ const toggle = () => {
   isExpanded.value = !isExpanded.value
 }
 
-// Remove function: emits the remove event for this learned word.
+// Remove function: emits the remove event for this vocab word.
 function removeWord(e: Event) {
   e.stopPropagation()
   emit('remove', props.vocab.written)
@@ -107,7 +107,7 @@ function removeWord(e: Event) {
     </td>
   </tr>
 
-  <!-- Expanded row: shows the learned date, remove button, and detailed list of senses -->
+  <!-- Expanded row: shows the updated date, remove button, and detailed list of senses -->
   <tr v-if="isExpanded">
     <td></td>
     <td colspan="2" class="px-4 py-2 border-t">
@@ -119,7 +119,7 @@ function removeWord(e: Event) {
           </svg>
         </button>
         <span class="ml-2 text-sm text-gray-600">
-          Learned on:
+          Updated on:
           {{
             new Date(props.vocab.updated_at).toLocaleString(undefined, {
               year: 'numeric',

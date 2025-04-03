@@ -2,11 +2,10 @@
 import { ref, computed, watch } from 'vue'
 import DictionaryList from '@/components/DictionaryList.vue'
 import DictionaryExportImport from '@/components/DictionaryExportImport.vue'
-
 import { useVocabStore } from '@/stores/vocabulary'
 import { mdiChevronLeft, mdiChevronRight, mdiExportVariant } from '@mdi/js'
 
-// Get the vocabulary store instance and cast learnedVocab.
+// Get the vocabulary store instance.
 const vocabStore = useVocabStore()
 
 // State for search text and sort order.
@@ -17,11 +16,48 @@ const sortOrder = ref<'alphabetical' | 'date'>('date')
 const pageSize = 20
 const currentPage = ref(1)
 
+// Reactive state to filter vocabulary by status.
+// By default, all three statuses are selected.
+const selectedStatuses = ref<string[]>(['learned', 'seen', 'ignore'])
+
+// Toggle a status filter: add it if not selected, remove it if already selected.
+function toggleStatus(statusOption: string) {
+  const index = selectedStatuses.value.indexOf(statusOption)
+  if (index > -1) {
+    selectedStatuses.value.splice(index, 1)
+  } else {
+    selectedStatuses.value.push(statusOption)
+  }
+}
+
+// Define the status options (excluding unknown).
+const statusOptions = [
+  { value: 'learned', label: 'Learned' },
+  { value: 'seen', label: 'Seen' },
+  { value: 'ignore', label: 'Ignore' },
+]
+
+// Colors for the selected state.
+const selectedColors: Record<string, string> = {
+  learned: 'bg-[#c0ffc0] text-green-800', // Pale green background for learned.
+  seen: 'bg-[#ffe0a8] text-orange-900',
+  ignore: 'bg-gray-300 text-black',
+}
+
+// Colors for the unselected state.
+const unselectedColors: Record<string, string> = {
+  learned: 'bg-white opacity-50 text-green-600 hover:bg-green-100',
+  seen: 'bg-white opacity-50 text-orange-600 hover:bg-orange-100',
+  ignore: 'bg-white opacity-50 text-gray-600 hover:bg-gray-100',
+}
+
 // Computed property that filters and sorts the learned vocabulary.
-const filteredLearnedVocab = computed(() => {
-  const filtered = vocabStore.learnedVocab.filter((word) =>
+const filteredVocabWords = computed(() => {
+  let filtered = vocabStore.vocabWords.filter((word) =>
     word.written.toLowerCase().includes(searchText.value.toLowerCase()),
   )
+  // Filter by selected statuses.
+  filtered = filtered.filter((word) => selectedStatuses.value.includes(word.status))
 
   if (sortOrder.value === 'alphabetical') {
     filtered.sort((a, b) => a.written.localeCompare(b.written))
@@ -32,12 +68,12 @@ const filteredLearnedVocab = computed(() => {
 })
 
 // Compute total pages based on the filtered list.
-const totalPages = computed(() => Math.ceil(filteredLearnedVocab.value.length / pageSize))
+const totalPages = computed(() => Math.ceil(filteredVocabWords.value.length / pageSize))
 
 // Compute the paginated list of vocabulary items.
-const paginatedLearnedVocab = computed(() => {
+const paginatedVocabWords = computed(() => {
   const start = (currentPage.value - 1) * pageSize
-  return filteredLearnedVocab.value.slice(start, start + pageSize)
+  return filteredVocabWords.value.slice(start, start + pageSize)
 })
 
 // When search text or sort order changes, reset current page to 1.
@@ -51,31 +87,56 @@ const showExportImport = ref(false)
 
 <template>
   <div>
-    <!-- Search & Sort Bar -->
-    <div class="flex items-center justify-between mb-2 p-2 bg-white rounded shadow">
+    <!-- Top Control Bar: Search, Status Filters, Export & Sort -->
+    <div class="flex items-center justify-between mb-2 p-2 bg-white rounded shadow space-x-2">
+      <!-- Search Input -->
       <input
         v-model="searchText"
         type="text"
         placeholder="Search words..."
         class="border border-gray-800 p-2 rounded w-full h-10"
       />
-      <!-- Export/Import Button -->
-      <button
-        @click="showExportImport = true"
-        class="flex items-center justify-center px-2 mx-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
-      >
-        <svg class="w-6 h-6" viewBox="0 0 24 24">
-          <path :d="mdiExportVariant" fill="currentColor" />
-        </svg>
-      </button>
-      <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
-        <option value="date">By Date</option>
-        <option value="alphabetical">Alphabetical</option>
-      </select>
+
+      <!-- Status Filter Buttons -->
+      <div class="flex space-x-1">
+        <button
+          v-for="option in statusOptions"
+          :key="option.value"
+          @click="toggleStatus(option.value)"
+          :class="[
+            'cursor-pointer p-2 font-semibold rounded-md transition-colors duration-150 focus:outline-none',
+            selectedStatuses.includes(option.value)
+              ? selectedColors[option.value]
+              : unselectedColors[option.value],
+          ]"
+          role="checkbox"
+          :aria-checked="selectedStatuses.includes(option.value)"
+        >
+          {{ option.label }}
+        </button>
+      </div>
+
+      <!-- Export Button & Sort Order Select -->
+      <div class="flex items-center space-x-2">
+        <!-- Export/Import Button -->
+        <button
+          @click="showExportImport = true"
+          class="flex items-center justify-center px-2 h-10 w-10 bg-gray-200 rounded hover:bg-gray-300"
+        >
+          <svg class="w-6 h-6" viewBox="0 0 24 24">
+            <path :d="mdiExportVariant" fill="currentColor" />
+          </svg>
+        </button>
+        <!-- Sort Order Select -->
+        <select v-model="sortOrder" class="border border-gray-800 p-2 rounded h-10">
+          <option value="date">By Date</option>
+          <option value="alphabetical">Alphabetical</option>
+        </select>
+      </div>
     </div>
 
     <!-- Dictionary List Component -->
-    <DictionaryList :learnedVocab="paginatedLearnedVocab" />
+    <DictionaryList :vocabWords="paginatedVocabWords" />
 
     <!-- Pagination Controls -->
     <div v-if="totalPages > 1" class="flex items-center mt-2 bg-white p-2 rounded shadow">
