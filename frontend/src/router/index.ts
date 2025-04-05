@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import AnalyzeView from '../views/AnalyzeView.vue'
+import VocabularyView from '../views/VocabularyView.vue'
 import DictionaryView from '../views/DictionaryView.vue'
 import HomeView from '../views/HomeView.vue'
 import ChangelogView from '../views/ChangelogView.vue'
@@ -19,7 +20,12 @@ const routes: Array<RouteRecordRaw> = [
     component: AnalyzeView,
   },
   {
-    path: '/dico',
+    path: '/vocabulary',
+    name: 'Vocabulary',
+    component: VocabularyView,
+  },
+  {
+    path: '/dictionary',
     name: 'Dictionary',
     component: DictionaryView,
   },
@@ -32,8 +38,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: NotFoundView
-  }
+    component: NotFoundView,
+  },
 ]
 
 /** Create the app router */

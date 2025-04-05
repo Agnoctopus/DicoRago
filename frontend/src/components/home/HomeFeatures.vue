@@ -24,7 +24,7 @@
           :icon="mdiMagnify"
         />
         <FeatureEntry
-          title="Personal Dictionary Management"
+          title="Personal Vocabulary Management"
           description="Track your progress by saving new words to your vocabulary list."
           :icon="mdiNotebook"
         />

@@ -21,9 +21,16 @@ const route = useRoute()
           Analyze
         </router-link>
         <router-link
-          to="/dico"
+          to="/vocabulary"
           class="text-lg hover:text-blue-600"
-          :class="route.path === '/dico' ? 'underline underline-offset-4' : ''"
+          :class="route.path === '/vocabulary' ? 'underline underline-offset-4' : ''"
+        >
+          Vocabulary
+        </router-link>
+        <router-link
+          to="/dictionary"
+          class="text-lg hover:text-blue-600"
+          :class="route.path === '/dictionary' ? 'underline underline-offset-4' : ''"
         >
           Dictionary
         </router-link>
