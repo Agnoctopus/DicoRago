@@ -9,7 +9,7 @@ Endpoints:
 - GET /written/{written}/words: Retrieve words by their written form.
 """
 
-from typing import List, Union
+from typing import List, Sequence, Union
 
 import khaiii
 from fastapi import APIRouter, Depends, HTTPException
@@ -60,7 +60,7 @@ def convert_word_to_schema(word: Word) -> WordWithSensesSchema:
     )
 
 
-def convert_words_to_schema(words: List[Word]) -> List[WordWithSensesSchema]:
+def convert_words_to_schema(words: Sequence[Word]) -> List[WordWithSensesSchema]:
     """
     Converts a list of Word objects into a list of WordWithSensesSchema objects,
     using the convert_word_to_schema helper function.
@@ -205,7 +205,7 @@ async def get_word(
     """
     repository = WordRepository(session)
     word = await repository.get_by_id(word_id, senses=senses, language=language)
-    if senses:
+    if word is not None and senses:
         return convert_word_to_schema(word)
     return WordSchema.from_orm(word)
 
@@ -219,7 +219,7 @@ async def get_words(
     senses: bool = False,
     language: str = "en_US",
     session: AsyncSession = Depends(get_session),
-) -> List[Union[WordSchema, WordWithSensesSchema]]:
+) -> Sequence[Union[WordSchema, WordWithSensesSchema]]:
     """
     Retrieve words by their written form, optionally including their associated senses.
 
@@ -235,6 +235,71 @@ async def get_words(
     """
     repository = WordRepository(session)
     words = await repository.get_by_written(written, senses=senses, language=language)
+    if senses:
+        return convert_words_to_schema(words)
+    return [WordSchema.from_orm(word) for word in words]
+
+
+@router.get(
+    "/writtens/{writtens_str}/words",
+    response_model=List[Union[WordSchema, WordWithSensesSchema]],
+)
+async def get_words_batch(
+    writtens_str: str,
+    senses: bool = False,
+    language: str = "en_US",
+    session: AsyncSession = Depends(get_session),
+) -> Sequence[Union[WordSchema, WordWithSensesSchema]]:
+    """
+    Retrieve words by their writtens form, optionally including their associated senses.
+
+    Args:
+        writtens (List[str]): Words written form.
+        senses (bool): If True, include associated senses.
+        language (str): Language code to for translation.
+        session (AsyncSession): Database session dependency.
+
+    Returns:
+        List[Union[WordSchema, WordWithSensesSchema]]: Corresponding words,
+        optionally with associated senses.
+    """
+    writtens = writtens_str.split(",")
+    repository = WordRepository(session)
+    words = await repository.get_by_writtens(
+        writtens, senses=senses, language=language, order=False
+    )
+    if senses:
+        return convert_words_to_schema(words)
+    return [WordSchema.from_orm(word) for word in words]
+
+
+@router.get(
+    "/written/{fragment}/fragments",
+    response_model=List[Union[WordSchema | WordWithSensesSchema]],
+)
+async def get_words_from_fragment(
+    fragment: str,
+    senses: bool = False,
+    language: str = "en_US",
+    session: AsyncSession = Depends(get_session),
+) -> Sequence[Union[WordSchema, WordWithSensesSchema]]:
+    """
+    Retrieves a list of words whose written form starts with the given fragment.
+
+    Args:
+        fragment (str): Fragment to search for in the word's written form.
+        senses (bool): If True, include associated senses.
+        language (str): Language code to for translation.
+        session (AsyncSession): Database session dependency.
+
+    Returns:
+        List[Union[WordSchema, WordWithSensesSchema]]: Corresponding words,
+        optionally with associated senses.
+    """
+    repository = WordRepository(session)
+    words = await repository.search_by_fragment(
+        fragment, senses=senses, language=language
+    )
     if senses:
         return convert_words_to_schema(words)
     return [WordSchema.from_orm(word) for word in words]

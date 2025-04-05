@@ -198,6 +198,7 @@ async def auth_google(
     # Create the response
     return create_auth_response(google_id, "google")
 
+
 @router.post("/apple")
 async def auth_apple(
     id_token: str = Form(...),
@@ -233,6 +234,7 @@ async def auth_apple(
 
     # Create the response
     return create_auth_response(apple_id, "apple")
+
 
 @router.get("/logout")
 async def logout() -> RedirectResponse:
