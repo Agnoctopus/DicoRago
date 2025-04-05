@@ -9,8 +9,9 @@ import { mdiTrashCan } from '@mdi/js'
 /**
  * Component props:
  * - vocab: A VocabWord object containing the written word and its update timestamp.
+ * - sync: A boolean indicating whether to sync words from the server (default: true).
  */
-const props = defineProps<{ vocab: VocabWord }>()
+const props = withDefaults(defineProps<{ vocab: VocabWord; sync?: boolean }>(), { sync: false })
 
 // Define emits to notify parent for removal of a vocabulary word.
 const emit = defineEmits<{ (e: 'remove', written: string): void }>()
@@ -19,18 +20,25 @@ const emit = defineEmits<{ (e: 'remove', written: string): void }>()
 const dictionaryStore = useDictionaryStore()
 const settingsStore = useSettingsStore()
 
-// On component mount, if the words for the given written form are not loaded, sync them from the server.
+// On component mount, if sync is enabled and the words for the given written form are not loaded, sync them from the server.
 onMounted(async () => {
-  if (!dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage)) {
+  if (
+    props.sync &&
+    !dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage)
+  ) {
     await dictionaryStore.syncWritten(props.vocab.written, settingsStore.dictionaryLanguage)
   }
 })
 
-// Watch for changes in props.vocab; if its words are not loaded, sync from the server.
+// Watch for changes in props.vocab; if sync is enabled and its words are not loaded, sync from the server.
 watch(
   () => props.vocab,
   async (newVocab) => {
-    if (newVocab && !dictionaryStore.getWords(newVocab.written, settingsStore.dictionaryLanguage)) {
+    if (
+      newVocab &&
+      props.sync &&
+      !dictionaryStore.getWords(newVocab.written, settingsStore.dictionaryLanguage)
+    ) {
       await dictionaryStore.syncWritten(newVocab.written, settingsStore.dictionaryLanguage)
     }
     isExpanded.value = false
@@ -42,7 +50,6 @@ watch(
  * that match the vocab word's written form. If none are found, returns an empty array.
  */
 const associatedWords = computed<Word[]>(() => {
-  console.log(settingsStore.dictionaryLanguage)
   return dictionaryStore.getWords(props.vocab.written, settingsStore.dictionaryLanguage) || []
 })
 

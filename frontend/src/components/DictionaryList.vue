@@ -1,12 +1,32 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import DictionaryEntry from '@/components/DictionaryEntry.vue'
 import { useVocabStore } from '@/stores/vocabulary'
+import { useDictionaryStore } from '@/stores/dictionary'
+import { useSettingsStore } from '@/stores/settings'
 import type { VocabWord } from '@/types'
 
 // Receive the vocab words as a prop.
-defineProps<{ vocabWords: VocabWord[] }>()
-// Get the vocabulary store instance.
+const props = defineProps<{ vocabWords: VocabWord[] }>()
+
+// Get the vocabulary, dictionary, and settings store instances.
 const vocabStore = useVocabStore()
+const dictionaryStore = useDictionaryStore()
+const settingsStore = useSettingsStore()
+
+// On component mount, retrieve vocab words that are not yet in the dictionary and sync them.
+onMounted(async () => {
+  const missingWrittens: string[] = []
+  props.vocabWords.forEach((vocab) => {
+    const words = dictionaryStore.getWords(vocab.written, settingsStore.dictionaryLanguage)
+    if (!words) {
+      missingWrittens.push(vocab.written)
+    }
+  })
+  if (missingWrittens.length > 0) {
+    await dictionaryStore.syncWrittens(missingWrittens, settingsStore.dictionaryLanguage)
+  }
+})
 
 // Handle the removal of a vocabulary word.
 function handleRemove(written: string) {
@@ -25,18 +45,16 @@ function handleRemove(written: string) {
         </tr>
       </thead>
       <tbody>
-        <template v-if="vocabWords.length > 0">
+        <template v-if="props.vocabWords.length > 0">
           <DictionaryEntry
-            v-for="(entry, index) in vocabWords"
+            v-for="(entry, index) in props.vocabWords"
             :key="index"
             :vocab="entry"
             @remove="handleRemove"
           />
         </template>
         <tr v-else>
-          <td colspan="3" class="px-4 py-2 text-center text-gray-600">
-            No matching vocabulary entry.
-          </td>
+          <td colspan="3" class="px-4 py-2 text-center text-gray-600">No matching word entry.</td>
         </tr>
       </tbody>
     </table>
