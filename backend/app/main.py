@@ -36,7 +36,13 @@ app.include_router(user.router, tags=["User"])
 
 # Mobile info route
 @app.get("/mobile", response_model=MobileInfoSchema)
-def get_mobile_info():
+def get_mobile_info() -> MobileInfoSchema:
+    """
+    Retrieves mobile application version information.
+
+    Returns:
+        MobileInfoSchema: Minimum version requirements for iOS and Android.
+    """
     return MobileInfoSchema(
         min_version_ios=settings.MIN_VERSION_IOS,
         min_version_android=settings.MIN_VERSION_ANDROID,
