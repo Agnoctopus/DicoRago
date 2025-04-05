@@ -117,7 +117,7 @@ async def update_voc(
 
 
 @router.put("/voc/batch", response_model=VocStatusSchema)
-async def update_voc(
+async def update_voc_batch(
     voc_req: List[VocabWordSchema],
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
@@ -242,7 +242,7 @@ async def get_last_voc(
 async def clear_vocabulary(
     user: User = Depends(get_current_user),
     session: AsyncSession = Depends(get_session),
-) -> None:
+) -> Response:
     """
     Deletes all vocabulary words for the authenticated user.
 
@@ -251,7 +251,7 @@ async def clear_vocabulary(
         session (AsyncSession): DB session dependency.
 
     Returns:
-        None: Responds with HTTP 204 No Content upon success.
+        Response: Responds with HTTP 204 No Content upon success.
     """
     repository = VocRepository(session, user.id)
 

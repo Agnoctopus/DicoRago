@@ -105,8 +105,8 @@ class WordRepository:
         Args:
             writtens (List[str]): All written values.
             senses (bool): If True, eagerly load associated senses.
-            order (bool): If True, order results to match the writtens list.
             language (str): Language code to for translation.
+            order (bool): If True, order results to match the writtens list.
 
         Returns:
             Sequence[Word]: Matching Word objects.
@@ -133,6 +133,48 @@ class WordRepository:
         result = await self.session.execute(stmt)
         words = result.scalars().all()
 
+        return words
+
+    async def search_by_fragment(
+        self,
+        fragment: str,
+        senses: bool = False,
+        language: str = "en_US",
+    ) -> Sequence[Word]:
+        """
+        Searches for words whose written form starts with the given fragment.
+
+        Args:
+            fragment (str): Fragment of the written.
+            senses (bool): If True, eagerly load associated senses.
+            language (str): Language code to for translation.
+
+        Returns:
+            Sequence[Word]: List of words matching the criterion.
+        """
+        subq = (
+            select(Word.written)
+            .where(Word.written.like(f"{fragment}%"))
+            .where(Word.category != "none")
+            .group_by(Word.written)
+            .limit(10)
+            .scalar_subquery()
+        )
+
+        stmt = select(Word).where(Word.written.in_(subq))
+
+        if senses:
+            stmt = stmt.options(
+                selectinload(Word.senses).selectinload(Sense.translations),
+                with_loader_criteria(
+                    SenseTranslation,
+                    lambda translation: translation.language == language,
+                    include_aliases=True,
+                ),
+            )
+
+        result = await self.session.execute(stmt)
+        words = result.scalars().all()
         return words
 
 
@@ -440,7 +482,7 @@ class VocRepository:
         await self.session.commit()
         return vocab_word
 
-    async def add_words(self, words: List[VocabWordSchema]) -> VocabWord:
+    async def add_words(self, words: List[VocabWordSchema]) -> List[VocabWord]:
         """
         Add a new VocabWord record to the user's vocabulary.
 
