@@ -64,22 +64,20 @@ class AnalyseRequestSchema(BaseModel):
     """
 
     text: str
-    language: Optional[str] = Field(default="en_US")
+    language: str = Field(default="en_US")
 
     @validator("language", pre=True, always=True)
-    def check_language(cls, value):
-        if value is None or value not in LANGUAGES_SUPPORTED:
-            return "en_US"
-        return value
+    # pylint: disable=no-self-argument
+    def check_language(cls, value: Optional[str]) -> str:
+        """
+        Validates the 'language' field.
 
+        Args:
+            value (Optional[str]): Language value provided by the user.
 
-class MonSchema(BaseModel):
-    obligatoire: str
-    optionnel: Optional[str] = Field(default="valeur_par_defaut")
-    language: Optional[str] = Field(default="en_US")  # Valeur par défaut
-
-    @validator("language", pre=True, always=True)
-    def check_language(cls, value):
+        Returns:
+            str: The valid language code.
+        """
         if value is None or value not in LANGUAGES_SUPPORTED:
             return "en_US"
         return value
@@ -197,7 +195,20 @@ class VocabWordSchema(BaseModel):
     updated_at: datetime
 
     @validator("status")
-    def validate_status(cls, value):
+    # pylint: disable=no-self-argument
+    def validate_status(cls, value: str) -> str:
+        """
+        Validates the 'status' field to ensure it is one of the allowed statuses.
+
+        Args:
+            value (str): The status value provided by the user.
+
+        Raises:
+            ValueError: If the provided status is not in the allowed set.
+
+        Returns:
+            str: The validated status value.
+        """
         allowed_statuses = {"unknown", "learned", "ignore", "seen"}
         if value not in allowed_statuses:
             raise ValueError(f"Status must be one of {allowed_statuses}")
