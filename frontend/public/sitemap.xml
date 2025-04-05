@@ -2,37 +2,43 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://dicorago.com/</loc>
-    <lastmod>2025-03-31</lastmod>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://dicorago.com/analyze</loc>
-    <lastmod>2025-03-31</lastmod>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://dicorago.com/dico</loc>
-    <lastmod>2025-03-31</lastmod>
+    <loc>https://dicorago.com/dictionary</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://dicorago.com/vocabulary</loc>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
     <loc>https://dicorago.com/changelog</loc>
-    <lastmod>2025-03-31</lastmod>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.25</priority>
   </url>
   <url>
     <loc>https://dicorago.com/privacy</loc>
-    <lastmod>2025-03-31</lastmod>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.1</priority>
   </url>
   <url>
     <loc>https://dicorago.com/support</loc>
-    <lastmod>2025-03-31</lastmod>
+    <lastmod>2025-04-01</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.1</priority>
   </url>
