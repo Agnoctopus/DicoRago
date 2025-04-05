@@ -1,7 +1,7 @@
 import { ref, readonly } from 'vue'
 import { defineStore } from 'pinia'
 import type { Word } from '@/types'
-import { getWordsFromWritten } from '@/api' // Ensure this function accepts language as an argument
+import { getWordsFromWritten, getWordsFromWrittens } from '@/api' // Ensure this function accepts language as an argument
 import { z } from 'zod'
 import { WordSchema } from '@/schemas'
 
@@ -73,6 +73,22 @@ export const useDictionaryStore = defineStore('dictionary', () => {
   }
 
   /**
+   * Adds or updates multiple written entries for a given language.
+   *
+   * @param elts - A record with written forms and values are arrays of related Word objects.
+   * @param language - The associated language..
+   */
+  function addWrittens(elts: Record<string, Word[]>, language: string): void {
+    for (const [written, words] of Object.entries(elts)) {
+      if (!dictionary.value[written]) {
+        dictionary.value[written] = {}
+      }
+      dictionary.value[written][language] = words
+    }
+    saveLocal()
+  }
+
+  /**
    * Retrieves words for a given written form and language.
    *
    * @param written - The written form to search for.
@@ -99,6 +115,35 @@ export const useDictionaryStore = defineStore('dictionary', () => {
     }
   }
 
+  /**
+   * Fetches words from the server for multiple written forms and language,
+   * groups them by their written property, and then adds them to the dictionary.
+   *
+   * @param writtens - An array of written forms to synchronize.
+   * @param language - The language to use for fetching.
+   */
+  async function syncWrittens(writtens: string[], language: string): Promise<void> {
+    try {
+      const words = await getWordsFromWrittens(writtens, true, language)
+      // Group words by their 'written' property.
+      const grouped: Record<string, Word[]> = words.reduce(
+        (acc, word) => {
+          if (!acc[word.written]) {
+            acc[word.written] = []
+          }
+          acc[word.written].push(word)
+          return acc
+        },
+        {} as Record<string, Word[]>,
+      )
+
+      // Add the grouped words to the dictionary.
+      addWrittens(grouped, language)
+    } catch (error) {
+      console.error(`Failed to sync dictionary for "${writtens}" in ${language}:`, error)
+    }
+  }
+
   // Automatically load the dictionary from localStorage when the store is created.
   loadLocal()
 
@@ -110,5 +155,6 @@ export const useDictionaryStore = defineStore('dictionary', () => {
     addWritten,
     getWords,
     syncWritten,
+    syncWrittens,
   }
 })
