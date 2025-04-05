@@ -222,6 +222,21 @@ export const useVocabStore = defineStore('learned', () => {
     }
   }
 
+  /**
+   * Given a list of written words, retrieves the associated VocabWord objects.
+   * If a VocabWord for a given written word is not present in the store,
+   * a temporary VocabWord is created with a status of 'unknown'.
+   *
+   * @param writtens - An array of written word strings.
+   * @returns An array of VocabWord objects corresponding to the provided written words.
+   */
+  function getAssociatedVocabWords(writtens: string[]): VocabWord[] {
+    return writtens.map((written) => {
+      const found = vocabWords.value.find((vocab) => vocab.written === written)
+      return found ? found : { written: written, updated_at: new Date(0), status: 'unknown' }
+    })
+  }
+
   // Load vocabulary on store initialization.
   loadVocabulary()
 
@@ -233,5 +248,6 @@ export const useVocabStore = defineStore('learned', () => {
     setStatus,
     loadVocabulary,
     clearVocabulary,
+    getAssociatedVocabWords,
   }
 })
