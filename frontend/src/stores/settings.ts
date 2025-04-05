@@ -9,10 +9,10 @@ import { defineStore } from 'pinia'
 export const useSettingsStore = defineStore('settings', () => {
   // Reactive state variables.
   const onlyUnknownColoring = ref(false)
-  const coloringEnabled = ref(false)
-  const vocabularyEnabled = ref(false)
+  const coloringEnabled = ref(true)
+  const vocabularyEnabled = ref(true)
   const dictionaryLanguage = ref('en_US')
-  const annotationStyle = ref('box')
+  const annotationStyle = ref('zen')
 
   /**
    * Loads settings from localStorage.
