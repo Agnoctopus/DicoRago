@@ -12,8 +12,9 @@ export const api = axios.create({
 
 /**
  * Analyzes the provided text.
+ *
  * @param text - Text to be analyzed.
- * @param language - Language to fetch for vocabulary.
+ * @param language - Language to fetch vocabulary data for.
  * @returns A Promise resolving to an Analysis object.
  */
 export const analyzeText = async (text: string, language: string): Promise<Analysis> => {
@@ -23,6 +24,7 @@ export const analyzeText = async (text: string, language: string): Promise<Analy
 
 /**
  * Retrieves examples for a given sense.
+ *
  * @param sense_id - Unique identifier of the sense.
  * @returns A Promise resolving to an array of Example objects.
  */
@@ -52,7 +54,47 @@ export const getWordsFromWritten = async (
 }
 
 /**
+ * Fetches words by multiple written forms from the server.
+ * Optionally includes associated senses.
+ *
+ * @param writtens - An array of written forms to search for.
+ * @param senses - Whether to include the associated senses (default: true).
+ * @param language - Language to use for sense translations.
+ * @returns A Promise that resolves to an array of Word objects.
+ */
+export const getWordsFromWrittens = async (
+  writtens: string[],
+  senses: boolean = true,
+  language: string = 'en_US',
+): Promise<Word[]> => {
+  const response = await api.get<Word[]>(`/writtens/${writtens}/words`, {
+    params: { senses, language },
+  })
+  return response.data
+}
+
+/**
+ * Searches for words whose written form starts with the provided fragment.
+ *
+ * @param fragment - The fragment to search for.
+ * @param senses - Whether to include associated senses (default: true).
+ * @param language - Language to use for sense translations.
+ * @returns A Promise that resolves to an array of Word objects.
+ */
+export const searchWordsFromFragment = async (
+  fragment: string,
+  senses: boolean = true,
+  language: string = 'en_US',
+): Promise<Word[]> => {
+  const response = await api.get<Word[]>(`/written/${fragment}/fragments`, {
+    params: { senses, language },
+  })
+  return response.data
+}
+
+/**
  * Retrieves the current user's data.
+ *
  * @returns A Promise resolving to a User object or null if no user is authenticated.
  */
 export const getUser = async (): Promise<User | null> => {
@@ -63,9 +105,9 @@ export const getUser = async (): Promise<User | null> => {
 /**
  * Updates the learning status of a vocabulary word for the current user.
  *
- * @param written - Written form.
+ * @param written - The written form of the vocabulary word.
  * @param status - New learning status.
- * @param updated_at - Ttimestamp of the update.
+ * @param updated_at - Timestamp of the update.
  * @returns A Promise resolving to the previous VocStatus object.
  */
 export const updateUserVoc = async (
